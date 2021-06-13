@@ -1,0 +1,285 @@
+<InputText@TextInput>:
+	size_hint_x: 0.25
+	multiline: False
+	write_tab: False
+	input_filter: "float"
+	on_focus: app.textinput_focus(args)
+	
+<SliderValue@Slider>:
+	size_hint_x: 0.4
+	min: 0
+	max: 1.2
+	step: 0.01
+
+TabbedPanel:
+	padding: 5
+	do_default_tab: False
+	tab_width: (self.size[0] - self.padding[0] * 3)/3
+
+    TabbedPanelItem:
+		text: 'Devices'
+        BoxLayout:
+			orientation: 'vertical'
+			spacing: 5
+			BoxLayout:
+				id: boxlayout_ref
+				size_hint_y: 0.1
+				spacing: 5
+				Label:
+					size_hint_x: 0.25
+					text: '[b]MAC[/b]'
+					markup: True
+				Label:
+					size_hint_x: 0.25
+					text: '[b]IP[/b]'
+					markup: True
+				Label:
+					size_hint_x: 0.25
+					text: '[b]Battery (V)[/b]'
+					markup: True
+				Label:
+					size_hint_x: 0.25
+					text: '[b]Role[/b]'
+					markup: True
+			StackLayout:
+				id: stack_list
+				orientation: 'tb-lr'
+				size_hint_y: 0.9
+				spacing: 5
+
+	TabbedPanelItem:
+		text: 'Role assignment'
+        BoxLayout:
+			orientation: 'vertical'
+			spacing: 5
+			BoxLayout:
+				size_hint_y: 0.1
+				spacing: 5
+				Label:
+					size_hint_x: 0.25
+					text: '[b]MAC[/b]'
+					markup: True
+				Label:
+					size_hint_x: 0.25
+					text: '[b]IP[/b]'
+					markup: True
+				Label:
+					size_hint_x: 0.5
+					text: '[b]Role[/b]'
+					markup: True
+			StackLayout:
+				id: stack_role
+				orientation: 'tb-lr'
+				size_hint_y: 0.9
+				spacing: 5
+				
+    TabbedPanelItem:
+        text: 'Settings'
+        BoxLayout:
+			orientation: 'vertical'
+			spacing: 5
+            Label:
+				size_hint_y: 2/18
+                text: '[b]Sensor XYZ rotation to driver frame in degree[/b]'
+				markup: True
+				font_size: '25sp'
+			BoxLayout:
+				size_hint_y: 1/18
+				spacing: 30
+				Label:
+					size_hint_x: 0.25
+					text: '[b]Body parts[/b]'
+					markup: True
+				Label:
+					size_hint_x: 0.25
+					text: '[b]X (right)[/b]'
+					markup: True
+				Label:
+					size_hint_x: 0.25
+					text: '[b]Y (up)[/b]'
+					markup: True
+				Label:
+					size_hint_x: 0.25
+					text: '[b]Z (back)[/b]'
+					markup: True
+			BoxLayout:
+				size_hint_y: 1/18
+				spacing: 30
+				Label:
+					size_hint_x: 0.25
+					text: '[b]Left shin[/b]'
+					markup: True
+				InputText:
+					id: lshin_x_text
+					text: app.lshin_x
+				InputText:
+					id: lshin_y_text
+					text: app.lshin_y
+				InputText:
+					id: lshin_z_text
+					text: app.lshin_z
+			BoxLayout:
+				size_hint_y: 1/18
+				spacing: 30
+				Label:
+					size_hint_x: 0.25
+					text: '[b]Right shin[/b]'
+					markup: True
+				InputText:
+					id: rshin_x_text
+					text: app.rshin_x
+				InputText:
+					id: rshin_y_text
+					text: app.rshin_y
+				InputText:
+					id: rshin_z_text
+					text: app.rshin_z
+			BoxLayout:
+				size_hint_y: 1/18
+				spacing: 30
+				Label:
+					size_hint_x: 0.25
+					text: '[b]Left thigh[/b]'
+					markup: True
+				InputText:
+					id: lthigh_x_text
+					text: app.lthigh_x
+				InputText:
+					id: lthigh_y_text
+					text: app.lthigh_y
+				InputText:
+					id: lthigh_z_text
+					text: app.lthigh_z
+			BoxLayout:
+				size_hint_y: 1/18
+				spacing: 30
+				Label:
+					size_hint_x: 0.25
+					text: '[b]Right thigh[/b]'
+					markup: True
+				InputText:
+					id: rthigh_x_text
+					text: app.rthigh_x
+				InputText:
+					id: rthigh_y_text
+					text: app.rthigh_y
+				InputText:
+					id: rthigh_z_text
+					text: app.rthigh_z
+			BoxLayout:
+				size_hint_y: 1/18
+				spacing: 30
+				Label:
+					size_hint_x: 0.25
+					text: '[b]Waist[/b]'
+					markup: True
+				InputText:
+					id: waist_x_text
+					text: app.waist_x
+				InputText:
+					id: waist_y_text
+					text: app.waist_y
+				InputText:
+					id: waist_z_text
+					text: app.waist_z
+			Label:
+				size_hint_y: 2/18
+                text: '[b]Paramater settings in meter[/b]'
+				markup: True
+				font_size: '25sp'
+			BoxLayout:
+				size_hint_y: 1/18
+				Label:
+					size_hint_x: 0.5
+					text: '[b]Shin length (Knee to foot)[/b]'
+					markup: True
+				SliderValue:
+					id: shin_h
+					value: 0.5
+				Label:
+					size_hint_x: 0.1
+					text: '{:.2f}'.format(shin_h.value)
+			BoxLayout:
+				size_hint_y: 1/18
+				Label:
+					size_hint_x: 0.5
+					text: '[b]Thigh length (Hip to knee)[/b]'
+					markup: True
+				SliderValue:
+					id: thigh_h
+					value: 0.4
+				Label:
+					size_hint_x: 0.1
+					text: '{:.2f}'.format(thigh_h.value)
+			BoxLayout:
+				size_hint_y: 1/18
+				Label:
+					size_hint_x: 0.5
+					text: '[b]Back length (Hip to neck)[/b]'
+					markup: True
+				SliderValue:
+					id: back_h
+					value: 0.6
+				Label:
+					size_hint_x: 0.1
+					text: '{:.2f}'.format(back_h.value)
+			BoxLayout:
+				size_hint_y: 1/18
+				Label:
+					size_hint_x: 0.5
+					text: '[b]Head length (Neck to HMD / eye level)[/b]'
+					markup: True
+				SliderValue:
+					id: head_h
+					value: 0.1
+				Label:
+					size_hint_x: 0.1
+					text: '{:.2f}'.format(head_h.value)
+			BoxLayout:
+				size_hint_y: 1/18
+				Label:
+					size_hint_x: 0.5
+					text: '[b]Hip width[/b]'
+					markup: True
+				SliderValue:
+					id: hip_width_h
+					value: 0.3
+				Label:
+					size_hint_x: 0.1
+					text: '{:.2f}'.format(hip_width_h.value)
+			BoxLayout:
+				size_hint_y: 1/18
+				Label:
+					size_hint_x: 0.5
+					text: '[b]Shin sensor position (Knee to sensor)[/b]'
+					markup: True
+				SliderValue:
+					id: shin_sensor_h
+					value: 0.2
+				Label:
+					size_hint_x: 0.1
+					text: '{:.2f}'.format(shin_sensor_h.value)
+			BoxLayout:
+				size_hint_y: 1/18
+				Label:
+					size_hint_x: 0.5
+					text: '[b]Thigh sensor position (Hip to sensor)[/b]'
+					markup: True
+				SliderValue:
+					id: thigh_sensor_h
+					value: 0.2
+				Label:
+					size_hint_x: 0.1
+					text: '{:.2f}'.format(thigh_sensor_h.value)
+			BoxLayout:
+				size_hint_y: 1/18
+				Label:
+					size_hint_x: 0.5
+					text: '[b]Waist sensor position (Hip to sensor)[/b]'
+					markup: True
+				SliderValue:
+					id: waist_sensor_h
+					value: 0.1
+				Label:
+					size_hint_x: 0.1
+					text: '{:.2f}'.format(waist_sensor_h.value)
