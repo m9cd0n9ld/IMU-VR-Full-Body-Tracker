@@ -8,8 +8,8 @@
  
 ## Hardware Example
  **LILYGO® TTGO T7 V1.5 Mini32 ESP32-WROVER-B** with **GY-BNO08X**  
- ![TTGO T7 V1.5 with GY-BNO08X](<img src="file://media/ttgo-t7-v1.5_gy-bno08x.jpg" width="375" height="500">)  
- ![Tracker](<img src="file://media/tracker.jpg" width="375" height="500">)  
+ ![TTGO T7 V1.5 with GY-BNO08X](<img src="/media/ttgo-t7-v1.5_gy-bno08x.jpg" width="375" height="500">)  
+ ![Tracker](<img src="/media/tracker.jpg" width="375" height="500">)  
  
 ## Installation
  Extract steamvr.driver.zip and copy imuFBT folder to (Steam directory)\steamapps\common\SteamVR\drivers  
@@ -20,22 +20,22 @@
  3. Extract desktop.server.zip and run imufbtserver.exe (might trigger antivirus false positive, typical problem for unsigned exe files).  
  4. Set the sensor frame to driver frame (X right, Y up, Z back) XYZ intrinsic rotation based on the mounting orientation, and body parts measurement and sensor position settings in **Settings** tab.  
  5. Enable chest sensor if applicable.  
- ![Settings](<img src="file://media/desktop_app_settings.png" width="246" height="300">)  
+ ![Settings](<img src="/media/desktop_app_settings.png" width="246" height="300">)  
  6. Plug in USB cable to ESP32 and set the WiFi credential in **WiFi Settings** tab.  
- ![WiFi settings](<img src="file://media/desktop_app_wifi_settings.png " width="246" height="300">)  
+ ![WiFi settings](<img src="/media/desktop_app_wifi_settings.png " width="246" height="300">)  
  7. Once WiFi credential is configured, unplug the USB cable and power cycle the ESP32 to establish WiFi connection.  
  8. The trackers will be listed in both **Devices** and **Role assignment** tabs.  
  9. Set the roles of the trackers in **Role assignment** tab.  
- ![Roles assignment](<img src="file://media/desktop_app_choose_role.png" width="246" height="300">)  
+ ![Roles assignment](<img src="/media/desktop_app_choose_role.png" width="246" height="300">)  
  10. Once everything is setup properly, the trackers with correct roles assignment will be shown in **Devices** tab.  
- ![Devices](<img src="file://media/desktop_app_devices_list.png" width="246" height="300">)  
+ ![Devices](<img src="/media/desktop_app_devices_list.png" width="246" height="300">)  
  11. Open SteamVR.  
  12. The trackers will be shown in SteamVR environment at weird position and orientation on startup.  
- ![Before alignment](<img src="file://media/steamvr_sensors_not_aligned.png" width="500" height="500">)  
+ ![Before alignment](<img src="/media/steamvr_sensors_not_aligned.png" width="500" height="500">)  
  13. Stand straight with feet hip-width apart and look forward, then reset SteamVR view to realign/calibrate the trackers, or press **Calibrate** button in **Devices** tab to realign/calibrate the trackers without resetting SteamVR view.  
- ![Alignment](<img src="file://media/steamvr_sensors_alignment.gif" width="500" height="500">)  
+ ![Alignment](<img src="/media/steamvr_sensors_alignment.gif" width="500" height="500">)  
  14. Done!  
- ![Final](<img src="file://media/final_result.gif" width="500" height="280">)  
+ ![Final](<img src="/media/final_result.gif" width="500" height="280">)  
  
  
  
