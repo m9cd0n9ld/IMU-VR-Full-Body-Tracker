@@ -1,0 +1,12 @@
+(module BATTERY_SILK (layer F.Cu) (tedit 609F79F2)
+  (fp_text reference REF** (at -2.54 3.81) (layer F.SilkS) hide
+    (effects (font (size 1 1) (thickness 0.15)))
+  )
+  (fp_text value BATTERY_SILK (at -5.08 1.27) (layer F.Fab)
+    (effects (font (size 1 1) (thickness 0.15)))
+  )
+  (fp_line (start 0 0) (end 31.75 0) (layer F.SilkS) (width 0.12))
+  (fp_line (start 31.75 0) (end 31.75 -58.42) (layer F.SilkS) (width 0.12))
+  (fp_line (start 31.75 -58.42) (end 0 -58.42) (layer F.SilkS) (width 0.12))
+  (fp_line (start 0 -58.42) (end 0 0) (layer F.SilkS) (width 0.12))
+)

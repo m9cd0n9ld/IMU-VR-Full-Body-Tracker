@@ -1,31 +1,41 @@
 # IMU-VR-Full-Body-Tracker
  Inside-out full body tracker for Steam VR based on ESP32 with BNO080/085 IMU.  
- No base station is required, completely wireless.  
+ No base station is required, completely wireless using WiFi.  
  Compatible with any VR headset that supports Steam VR.  
- Requires 5 sets of ESP32 + BNO080/085 to track waist, thigh and leg to complete 6 point full body tracking in Steam VR.
+ Requires minimum 1 set of ESP32 + BNO080/085 to track waist, hand (controllers) and head (headset) for 4 point body tracking in Steam VR.  
+ Requires minimum 5 sets of ESP32 + BNO080/085 to track waist, thigh, leg, hand (controllers) and head (headset) for 6 point body tracking in Steam VR.  
+ Optional extra 1 set of ESP32 + BNO080/085 to track chest for improved skeleton kinematic model accuracy.  
+ 
+## Hardware Example
+ **LILYGO® TTGO T7 V1.5 Mini32 ESP32-WROVER-B** with **GY-BNO08X**  
+ ![TTGO T7 V1.5 with GY-BNO08X](media/ttgo-t7-v1.5_gy-bno08x.jpg  =375x500)  
+ ![Tracker](media/tracker.jpg =375x500)  
  
 ## Installation
  Extract steamvr.driver.zip and copy imuFBT folder to (Steam directory)\steamapps\common\SteamVR\drivers  
  
 ## Usage
- 1. Extract esp32.sketch.zip, edit WiFi SSID and password, and others settings if necessary in esp32_settings.h file.  
+ 1. Extract esp32.sketch.zip, edit the settings (pin settings, etc.) in esp32_settings.h file.  
  2. Upload the sketch to ESP32 microcontroller with Arduino IDE (SparkFun_BNO080_Arduino_Library Arduino library is required).  
  3. Extract desktop.server.zip and run imufbtserver.exe (might trigger antivirus false positive, typical problem for unsigned exe files).  
  4. Set the sensor frame to driver frame (X right, Y up, Z back) XYZ intrinsic rotation based on the mounting orientation, and body parts measurement and sensor position settings in **Settings** tab.  
- ![Settings](media/desktop_app_settings.png)  
- 5. Switch on the trackers.  
- 6. The trackers will be listed in both **Devices** and **Role assignment** tabs.  
- 7. Set the roles of the trackers in **Role assignment** tab.  
- ![Roles assignment](media/desktop_app_choose_role.png)  
- 8. Once everything is setup properly, the trackers with correct roles assignment will be shown in **Devices** tab.  
- ![Devices](media/desktop_app_devices_list.png)  
- 9. Open SteamVR.  
- 10. The trackers will be shown in SteamVR environment at weird position and orientation on startup.  
- ![Before alignment](media/steamvr_sensors_not_aligned.png)  
- 11. Stand straight and look forward, then reset SteamVR view to realign/calibrate the trackers.  
- ![Alignment](media/steamvr_sensors_alignment.gif)  
- 12. Done!  
- ![Final](media/final_result.gif)
+ 5. Enable chest sensor if applicable.  
+ ![Settings](media/desktop_app_settings.png =246x300)  
+ 6. Plug in USB cable to ESP32 and set the WiFi credential in **WiFi Settings** tab.  
+ ![WiFi settings](media/desktop_app_wifi_settings.png =246x300)  
+ 7. Once WiFi credential is configured, unplug the USB cable and power cycle the ESP32 to establish WiFi connection.  
+ 8. The trackers will be listed in both **Devices** and **Role assignment** tabs.  
+ 9. Set the roles of the trackers in **Role assignment** tab.  
+ ![Roles assignment](media/desktop_app_choose_role.png =246x300)  
+ 10. Once everything is setup properly, the trackers with correct roles assignment will be shown in **Devices** tab.  
+ ![Devices](media/desktop_app_devices_list.png =246x300)  
+ 11. Open SteamVR.  
+ 12. The trackers will be shown in SteamVR environment at weird position and orientation on startup.  
+ ![Before alignment](media/steamvr_sensors_not_aligned.png =500x500)  
+ 13. Stand straight with feet hip-width apart and look forward, then reset SteamVR view to realign/calibrate the trackers, or press **Calibrate** button in **Devices** tab to realign/calibrate the trackers without resetting SteamVR view.  
+ ![Alignment](media/steamvr_sensors_alignment.gif =500x500)  
+ 14. Done!  
+ ![Final](media/final_result.gif =500x280)  
  
  
  

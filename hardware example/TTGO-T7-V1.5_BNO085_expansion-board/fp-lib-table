@@ -1,0 +1,3 @@
+(fp_lib_table
+  (lib (name imuFBT_PCB_components)(type KiCad)(uri ${KIPRJMOD}/imuFBT_PCB_components.pretty)(options "")(descr ""))
+)

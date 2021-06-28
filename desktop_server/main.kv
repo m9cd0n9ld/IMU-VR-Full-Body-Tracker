@@ -1,5 +1,5 @@
 <InputText@TextInput>:
-	size_hint_x: 0.25
+	size_hint_x: 0.2
 	multiline: False
 	write_tab: False
 	input_filter: "float"
@@ -14,7 +14,7 @@
 TabbedPanel:
 	padding: 5
 	do_default_tab: False
-	tab_width: (self.size[0] - self.padding[0] * 3)/3
+	tab_width: (self.size[0] - self.padding[0] * 4)/4
 
     TabbedPanelItem:
 		text: 'Devices'
@@ -44,8 +44,19 @@ TabbedPanel:
 			StackLayout:
 				id: stack_list
 				orientation: 'tb-lr'
-				size_hint_y: 0.9
+				size_hint_y: 0.8
 				spacing: 5
+			BoxLayout:
+				size_hint_y: 0.1
+				spacing: 5
+				Label:
+					size_hint_x: 0.25
+				Button:
+					size_hint_x: 0.5
+					text: 'Caibrate'
+					on_release: app.calibrate_imu()
+				Label:
+					size_hint_x: 0.25
 
 	TabbedPanelItem:
 		text: 'Role assignment'
@@ -79,116 +90,158 @@ TabbedPanel:
 			orientation: 'vertical'
 			spacing: 5
             Label:
-				size_hint_y: 2/18
+				size_hint_y: 2/20
                 text: '[b]Sensor XYZ rotation to driver frame in degree[/b]'
 				markup: True
 				font_size: '25sp'
 			BoxLayout:
-				size_hint_y: 1/18
-				spacing: 30
+				size_hint_y: 1/20
+				spacing: 10
 				Label:
-					size_hint_x: 0.25
+					size_hint_x: 0.2
+					text: '[b]Enable[/b]'
+					markup: True
+				Label:
+					size_hint_x: 0.2
 					text: '[b]Body parts[/b]'
 					markup: True
 				Label:
-					size_hint_x: 0.25
+					size_hint_x: 0.2
 					text: '[b]X (right)[/b]'
 					markup: True
 				Label:
-					size_hint_x: 0.25
+					size_hint_x: 0.2
 					text: '[b]Y (up)[/b]'
 					markup: True
 				Label:
-					size_hint_x: 0.25
+					size_hint_x: 0.2
 					text: '[b]Z (back)[/b]'
 					markup: True
 			BoxLayout:
-				size_hint_y: 1/18
-				spacing: 30
+				size_hint_y: 1/20
+				spacing: 10
 				Label:
-					size_hint_x: 0.25
+					size_hint_x: 0.2
+					text: ''
+				Label:
+					size_hint_x: 0.2
 					text: '[b]Left shin[/b]'
 					markup: True
 				InputText:
 					id: lshin_x_text
-					text: app.lshin_x
+					text: '0'
 				InputText:
 					id: lshin_y_text
-					text: app.lshin_y
+					text: '0'
 				InputText:
 					id: lshin_z_text
-					text: app.lshin_z
+					text: '0'
 			BoxLayout:
-				size_hint_y: 1/18
-				spacing: 30
+				size_hint_y: 1/20
+				spacing: 10
 				Label:
-					size_hint_x: 0.25
+					size_hint_x: 0.2
+					text: ''
+				Label:
+					size_hint_x: 0.2
 					text: '[b]Right shin[/b]'
 					markup: True
 				InputText:
 					id: rshin_x_text
-					text: app.rshin_x
+					text: '0'
 				InputText:
 					id: rshin_y_text
-					text: app.rshin_y
+					text: '0'
 				InputText:
 					id: rshin_z_text
-					text: app.rshin_z
+					text: '0'
 			BoxLayout:
-				size_hint_y: 1/18
-				spacing: 30
+				size_hint_y: 1/20
+				spacing: 10
 				Label:
-					size_hint_x: 0.25
+					size_hint_x: 0.2
+					text: ''
+				Label:
+					size_hint_x: 0.2
 					text: '[b]Left thigh[/b]'
 					markup: True
 				InputText:
 					id: lthigh_x_text
-					text: app.lthigh_x
+					text: '0'
 				InputText:
 					id: lthigh_y_text
-					text: app.lthigh_y
+					text: '0'
 				InputText:
 					id: lthigh_z_text
-					text: app.lthigh_z
+					text: '0'
 			BoxLayout:
-				size_hint_y: 1/18
-				spacing: 30
+				size_hint_y: 1/20
+				spacing: 10
 				Label:
-					size_hint_x: 0.25
+					size_hint_x: 0.2
+					text: ''
+				Label:
+					size_hint_x: 0.2
 					text: '[b]Right thigh[/b]'
 					markup: True
 				InputText:
 					id: rthigh_x_text
-					text: app.rthigh_x
+					text: '0'
 				InputText:
 					id: rthigh_y_text
-					text: app.rthigh_y
+					text: '0'
 				InputText:
 					id: rthigh_z_text
-					text: app.rthigh_z
+					text: '0'
 			BoxLayout:
-				size_hint_y: 1/18
-				spacing: 30
+				size_hint_y: 1/20
+				spacing: 10
 				Label:
-					size_hint_x: 0.25
+					size_hint_x: 0.2
+					text: ''
+				Label:
+					size_hint_x: 0.2
 					text: '[b]Waist[/b]'
 					markup: True
 				InputText:
 					id: waist_x_text
-					text: app.waist_x
+					text: '0'
 				InputText:
 					id: waist_y_text
-					text: app.waist_y
+					text: '0'
 				InputText:
 					id: waist_z_text
-					text: app.waist_z
+					text: '0'
+			BoxLayout:
+				size_hint_y: 1/20
+				spacing: 10
+				CheckBox:
+					id: chest_en_check
+					size_hint_x: 0.2
+					active: False
+				Label:
+					size_hint_x: 0.2
+					text: '[b]Chest[/b]'
+					markup: True
+				InputText:
+					id: chest_x_text
+					text: '0'
+					disabled: not chest_en_check.active
+				InputText:
+					id: chest_y_text
+					text: '0'
+					disabled: not chest_en_check.active
+				InputText:
+					id: chest_z_text
+					text: '0'
+					disabled: not chest_en_check.active
 			Label:
-				size_hint_y: 2/18
+				size_hint_y: 2/20
                 text: '[b]Paramater settings in meter[/b]'
 				markup: True
 				font_size: '25sp'
 			BoxLayout:
-				size_hint_y: 1/18
+				size_hint_y: 1/20
 				Label:
 					size_hint_x: 0.5
 					text: '[b]Shin length (Knee to foot)[/b]'
@@ -200,7 +253,7 @@ TabbedPanel:
 					size_hint_x: 0.1
 					text: '{:.2f}'.format(shin_h.value)
 			BoxLayout:
-				size_hint_y: 1/18
+				size_hint_y: 1/20
 				Label:
 					size_hint_x: 0.5
 					text: '[b]Thigh length (Hip to knee)[/b]'
@@ -212,7 +265,7 @@ TabbedPanel:
 					size_hint_x: 0.1
 					text: '{:.2f}'.format(thigh_h.value)
 			BoxLayout:
-				size_hint_y: 1/18
+				size_hint_y: 1/20
 				Label:
 					size_hint_x: 0.5
 					text: '[b]Back length (Hip to neck)[/b]'
@@ -224,19 +277,19 @@ TabbedPanel:
 					size_hint_x: 0.1
 					text: '{:.2f}'.format(back_h.value)
 			BoxLayout:
-				size_hint_y: 1/18
+				size_hint_y: 1/20
 				Label:
 					size_hint_x: 0.5
 					text: '[b]Head length (Neck to HMD / eye level)[/b]'
 					markup: True
 				SliderValue:
 					id: head_h
-					value: 0.1
+					value: 0.2
 				Label:
 					size_hint_x: 0.1
 					text: '{:.2f}'.format(head_h.value)
 			BoxLayout:
-				size_hint_y: 1/18
+				size_hint_y: 1/20
 				Label:
 					size_hint_x: 0.5
 					text: '[b]Hip width[/b]'
@@ -248,38 +301,111 @@ TabbedPanel:
 					size_hint_x: 0.1
 					text: '{:.2f}'.format(hip_width_h.value)
 			BoxLayout:
-				size_hint_y: 1/18
+				size_hint_y: 1/20
 				Label:
 					size_hint_x: 0.5
 					text: '[b]Shin sensor position (Knee to sensor)[/b]'
 					markup: True
 				SliderValue:
 					id: shin_sensor_h
+					max: shin_h.value
 					value: 0.2
 				Label:
 					size_hint_x: 0.1
 					text: '{:.2f}'.format(shin_sensor_h.value)
 			BoxLayout:
-				size_hint_y: 1/18
+				size_hint_y: 1/20
 				Label:
 					size_hint_x: 0.5
 					text: '[b]Thigh sensor position (Hip to sensor)[/b]'
 					markup: True
 				SliderValue:
 					id: thigh_sensor_h
+					max: thigh_h.value
 					value: 0.2
 				Label:
 					size_hint_x: 0.1
 					text: '{:.2f}'.format(thigh_sensor_h.value)
 			BoxLayout:
-				size_hint_y: 1/18
+				size_hint_y: 1/20
 				Label:
 					size_hint_x: 0.5
 					text: '[b]Waist sensor position (Hip to sensor)[/b]'
 					markup: True
 				SliderValue:
 					id: waist_sensor_h
-					value: 0.1
+					max: back_h.value if not chest_en_check.active else back_h.value/2
+					value: 0.2
 				Label:
 					size_hint_x: 0.1
 					text: '{:.2f}'.format(waist_sensor_h.value)
+			BoxLayout:
+				size_hint_y: 1/20
+				Label:
+					size_hint_x: 0.5
+					text: '[b]Chest sensor position (Neck to sensor)[/b]'
+					markup: True
+				SliderValue:
+					id: chest_sensor_h
+					disabled: not chest_en_check.active
+					max: back_h.value/2
+					value: 0.2
+				Label:
+					size_hint_x: 0.1
+					text: '{:.2f}'.format(chest_sensor_h.value)
+
+	TabbedPanelItem:
+		text: 'WiFi Settings'
+		BoxLayout:
+			orientation: 'vertical'
+			spacing: 5
+			BoxLayout:
+				size_hint_y: 0.25
+			BoxLayout:
+				size_hint_y: 0.1
+				Label:
+					size_hint_x: 0.2
+					text: 'COM Port'
+				Spinner:
+					id: com_port_list
+					size_hint_x: 0.8
+			BoxLayout:
+				size_hint_y: 0.1
+				Label:
+					size_hint_x: 0.2
+					text: 'WiFi SSID'
+				TextInput:
+					id: wifi_ssid
+					size_hint_x: 0.8
+					multiline: False
+					write_tab: False
+					on_focus: app.textinput_focus(args)
+			BoxLayout:
+				size_hint_y: 0.1
+				Label:
+					size_hint_x: 0.2
+					text: 'WiFi Password'
+				TextInput:
+					id: wifi_password
+					size_hint_x: 0.8
+					multiline: False
+					write_tab: False
+					password: True
+					on_focus: app.textinput_focus(args)
+			BoxLayout:
+				size_hint_y: 0.1
+				Label:
+					size_hint_x: 0.25
+				Button:
+					id: wifi_configure
+					size_hint_x: 0.5
+					text: 'Configure'
+					on_release: app.configure_wifi()
+				Label:
+					size_hint_x: 0.25
+			BoxLayout:
+				size_hint_y: 0.1
+				Label:
+					id: wifi_configure_status
+			BoxLayout:
+				size_hint_y: 0.25

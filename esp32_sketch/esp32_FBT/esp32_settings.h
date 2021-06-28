@@ -8,22 +8,16 @@
 #endif
 
 // Brownout detector
-bool brown_en = false;
-
-// WiFi SSID
-const char * networkName = "ssid";
-
-// WiFi password
-const char * networkPswd = "password";
+bool brown_en = true;
 
 // IMU reset pin
 const uint8_t reset_pin = 25;
 
 // LED indicator pin
-const uint8_t led_pin = 2;
+const uint8_t led_pin = 19;
 
 // Battery voltage monitoring pin
-const uint8_t batt_monitor_pin = 36;
+const uint8_t batt_monitor_pin = 35;
 
 /* 
  WIFI_POWER_19_5dBm // 19.5dBm
@@ -43,6 +37,6 @@ const uint8_t batt_monitor_pin = 36;
 wifi_power_t txPower = WIFI_POWER_5dBm;
 
 // Battery analog reading to voltage function
-float get_battery_voltage(uint16_t analogValue) {
-  return 2 * analogValue * 3.9 / 4095;
+float get_battery_voltage(uint32_t milliVolt) {
+  return 2 * milliVolt * 0.001;
 }

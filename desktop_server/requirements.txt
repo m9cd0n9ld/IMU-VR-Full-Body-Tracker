@@ -21,3 +21,4 @@ typing-extensions==3.10.0.0
 urllib3==1.26.4
 zipp==3.4.1
 wheel==0.36.2
+pyserial==3.5

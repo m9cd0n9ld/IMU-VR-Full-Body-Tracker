@@ -17,6 +17,7 @@
 #define LTHIGH 3
 #define RTHIGH 4
 #define WAIST 5
+#define CHEST 6
 
 using namespace vr;
 
@@ -59,6 +60,10 @@ PACK(struct PayloadSettings {
 	float waist_y;
 	float waist_z;
 
+	float chest_x;
+	float chest_y;
+	float chest_z;
+
 	float shin;
 	float thigh;
 	float back;
@@ -67,30 +72,44 @@ PACK(struct PayloadSettings {
 	float shin_sensor;
 	float thigh_sensor;
 	float waist_sensor;
+	float chest_sensor;
+
+	bool chest_en;
+});
+
+PACK(struct Calibrate {
+	uint8_t calib;
 });
 
 Payload* payload;
 
 PayloadSettings* payload_settings;
 
+Calibrate* calibrate;
+
 Quaternionf imu_lshin(1, 0, 0, 0);
 Quaternionf imu_rshin(1, 0, 0, 0);
 Quaternionf imu_lthigh(1, 0, 0, 0);
 Quaternionf imu_rthigh(1, 0, 0, 0);
 Quaternionf imu_waist(1, 0, 0, 0);
+Quaternionf imu_chest(1, 0, 0, 0);
 
 bool lshin_available = false;
 bool rshin_available = false;
 bool lthigh_available = false;
 bool rthigh_available = false;
 bool waist_available = false;
+bool chest_available = false;
 bool hmd_available = false;
+
+bool chest_enable = false;
 
 auto t_lshin_last = std::chrono::high_resolution_clock::now();
 auto t_rshin_last = std::chrono::high_resolution_clock::now();
 auto t_lthigh_last = std::chrono::high_resolution_clock::now();
 auto t_rthigh_last = std::chrono::high_resolution_clock::now();
 auto t_waist_last = std::chrono::high_resolution_clock::now();
+auto t_chest_last = std::chrono::high_resolution_clock::now();
 
 auto t_end = std::chrono::high_resolution_clock::now();
 double elapsed_time_ms;
@@ -147,17 +166,23 @@ void WinSockReadFunc()
 					t_waist_last = std::chrono::high_resolution_clock::now();
 					waist_available = true;
 					break;
+				case CHEST:
+					imu_chest = Quaternionf(payload->w, payload->x, payload->y, payload->z);
+					t_chest_last = std::chrono::high_resolution_clock::now();
+					chest_available = true;
+					break;
 				}
 			}
 
-			else if(bytes_read == 92) {
+			else if(bytes_read == 109) {
 				payload_settings = (PayloadSettings*)buff;
 				Quaternionf T_lshin = bk->euXYZ_to_quat(payload_settings->lshin_x, payload_settings->lshin_y, payload_settings->lshin_z);
 				Quaternionf T_rshin = bk->euXYZ_to_quat(payload_settings->rshin_x, payload_settings->rshin_y, payload_settings->rshin_z);
 				Quaternionf T_lthigh = bk->euXYZ_to_quat(payload_settings->lthigh_x, payload_settings->lthigh_y, payload_settings->lthigh_z);
 				Quaternionf T_rthigh = bk->euXYZ_to_quat(payload_settings->rthigh_x, payload_settings->rthigh_y, payload_settings->rthigh_z);
 				Quaternionf T_waist = bk->euXYZ_to_quat(payload_settings->waist_x, payload_settings->waist_y, payload_settings->waist_z);
-				bk->setSensorTransform(T_lshin, T_rshin, T_lthigh, T_rthigh, T_waist);
+				Quaternionf T_chest = bk->euXYZ_to_quat(payload_settings->chest_x, payload_settings->chest_y, payload_settings->chest_z);
+				bk->setSensorTransform(T_lshin, T_rshin, T_lthigh, T_rthigh, T_waist, T_chest);
 				bk->setParam(payload_settings->shin,
 					payload_settings->thigh,
 					payload_settings->back,
@@ -165,7 +190,19 @@ void WinSockReadFunc()
 					payload_settings->hip_width,
 					payload_settings->shin_sensor,
 					payload_settings->thigh_sensor,
-					payload_settings->waist_sensor);
+					payload_settings->waist_sensor,
+					payload_settings->chest_sensor,
+					payload_settings->chest_en);
+				chest_enable = payload_settings->chest_en;
+			}
+
+			else if (bytes_read == 1) {
+				calibrate = (Calibrate*)buff;
+				if (calibrate->calib == 51) {
+					float yaw = atan2f(-mat_hmd(2, 0), mat_hmd(0, 0));
+					Quaternionf direction = bk->euYXZ_to_quat(yaw, 0, 0);
+					bk->setOffset(imu_lshin, imu_rshin, imu_lthigh, imu_rthigh, imu_waist, imu_chest, direction);
+				}
 			}
 
 			else {
@@ -193,6 +230,10 @@ void WinSockReadFunc()
 			elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_waist_last).count();
 			if (elapsed_time_ms >= 1000) {
 				waist_available = false;
+			}
+			elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_chest_last).count();
+			if (elapsed_time_ms >= 1000) {
+				chest_available = false;
 			}
 		}
 	}
@@ -253,7 +294,7 @@ public:
 
 		VRProperties()->SetBoolProperty(m_ulPropertyContainer, Prop_Firmware_UpdateAvailable_Bool, false);
 		VRProperties()->SetBoolProperty(m_ulPropertyContainer, Prop_Firmware_ManualUpdate_Bool, true);
-		VRProperties()->SetStringProperty(m_ulPropertyContainer, Prop_Firmware_ManualUpdateURL_String, "https://www.google.com");
+		VRProperties()->SetStringProperty(m_ulPropertyContainer, Prop_Firmware_ManualUpdateURL_String, "https://github.com/m9cd0n9ld/IMU-VR-Full-Body-Tracker");
 		VRProperties()->SetUint64Property(m_ulPropertyContainer, Prop_HardwareRevision_Uint64, 0);
 		VRProperties()->SetUint64Property(m_ulPropertyContainer, Prop_FirmwareVersion_Uint64, 0);
 		VRProperties()->SetUint64Property(m_ulPropertyContainer, Prop_FPGAVersion_Uint64, 0);
@@ -370,7 +411,6 @@ public:
 						pose.result = TrackingResult_Fallback_RotationOnly;
 						pose.deviceIsConnected = true;
 					}
-					
 				}
 				else {
 					pose.poseIsValid = false;
@@ -390,7 +430,6 @@ public:
 						pose.result = TrackingResult_Fallback_RotationOnly;
 						pose.deviceIsConnected = true;
 					}
-
 				}
 				else {
 					pose.poseIsValid = false;
@@ -410,7 +449,6 @@ public:
 						pose.result = TrackingResult_Fallback_RotationOnly;
 						pose.deviceIsConnected = true;
 					}
-
 				}
 				else {
 					pose.poseIsValid = false;
@@ -430,7 +468,6 @@ public:
 						pose.result = TrackingResult_Fallback_RotationOnly;
 						pose.deviceIsConnected = true;
 					}
-
 				}
 				else {
 					pose.poseIsValid = false;
@@ -440,6 +477,32 @@ public:
 				break;
 			case WAIST:
 				if (waist_available) {
+					if (chest_enable) {
+						if (chest_available) {
+							pose.poseIsValid = true;
+							pose.result = TrackingResult_Running_OK;
+							pose.deviceIsConnected = true;
+						}
+						else {
+							pose.poseIsValid = true;
+							pose.result = TrackingResult_Fallback_RotationOnly;
+							pose.deviceIsConnected = true;
+						}
+					}
+					else {
+						pose.poseIsValid = true;
+						pose.result = TrackingResult_Running_OK;
+						pose.deviceIsConnected = true;
+					}
+				}
+				else {
+					pose.poseIsValid = false;
+					pose.result = TrackingResult_Running_OutOfRange;
+					pose.deviceIsConnected = false;
+				}
+				break;
+			case CHEST:
+				if (chest_available && chest_enable) {
 					pose.poseIsValid = true;
 					pose.result = TrackingResult_Running_OK;
 					pose.deviceIsConnected = true;
@@ -525,6 +588,16 @@ public:
 			pose.qRotation.z = bk->Q_waist.z();
 			pose.qRotation.w = bk->Q_waist.w();
 			break;
+		case CHEST:
+			pose.vecPosition[0] = bk->P_chest.x();
+			pose.vecPosition[1] = bk->P_chest.y();
+			pose.vecPosition[2] = bk->P_chest.z();
+
+			pose.qRotation.x = bk->Q_chest.x();
+			pose.qRotation.y = bk->Q_chest.y();
+			pose.qRotation.z = bk->Q_chest.z();
+			pose.qRotation.w = bk->Q_chest.w();
+			break;
 		}
 
 		return pose;
@@ -565,6 +638,7 @@ private:
 	DeviceDriver* m_pTracker3 = nullptr;
 	DeviceDriver* m_pTracker4 = nullptr;
 	DeviceDriver* m_pTracker5 = nullptr;
+	DeviceDriver* m_pTracker6 = nullptr;
 };
 
 DeviceProvider g_serverDriverNull;
@@ -615,32 +689,38 @@ EVRInitError DeviceProvider::Init(vr::IVRDriverContext* pDriverContext)
 	m_pTracker1 = new DeviceDriver();
 	m_pTracker1->SetTrackerIndex(LSHIN);
 	m_pTracker1->SetModel("lfoot");
-	m_pTracker1->SetVersion("0.0.1");
+	m_pTracker1->SetVersion("0.2");
 	vr::VRServerDriverHost()->TrackedDeviceAdded("lfoot", vr::TrackedDeviceClass_GenericTracker, m_pTracker1);
 
 	m_pTracker2 = new DeviceDriver();
 	m_pTracker2->SetTrackerIndex(RSHIN);
 	m_pTracker2->SetModel("rfoot");
-	m_pTracker2->SetVersion("0.0.1");
+	m_pTracker2->SetVersion("0.2");
 	vr::VRServerDriverHost()->TrackedDeviceAdded("rfoot", vr::TrackedDeviceClass_GenericTracker, m_pTracker2);
 
 	m_pTracker3 = new DeviceDriver();
 	m_pTracker3->SetTrackerIndex(WAIST);
 	m_pTracker3->SetModel("waist");
-	m_pTracker3->SetVersion("0.0.1");
+	m_pTracker3->SetVersion("0.2");
 	vr::VRServerDriverHost()->TrackedDeviceAdded("waist", vr::TrackedDeviceClass_GenericTracker, m_pTracker3);
 
 	m_pTracker4 = new DeviceDriver();
 	m_pTracker4->SetTrackerIndex(LTHIGH);
 	m_pTracker4->SetModel("lknee");
-	m_pTracker4->SetVersion("0.0.1");
+	m_pTracker4->SetVersion("0.2");
 	vr::VRServerDriverHost()->TrackedDeviceAdded("lknee", vr::TrackedDeviceClass_GenericTracker, m_pTracker4);
 
 	m_pTracker5 = new DeviceDriver();
 	m_pTracker5->SetTrackerIndex(RTHIGH);
 	m_pTracker5->SetModel("rknee");
-	m_pTracker5->SetVersion("0.0.1");
+	m_pTracker5->SetVersion("0.2");
 	vr::VRServerDriverHost()->TrackedDeviceAdded("rknee", vr::TrackedDeviceClass_GenericTracker, m_pTracker5);
+
+	m_pTracker6 = new DeviceDriver();
+	m_pTracker6->SetTrackerIndex(CHEST);
+	m_pTracker6->SetModel("chest");
+	m_pTracker6->SetVersion("0.2");
+	vr::VRServerDriverHost()->TrackedDeviceAdded("chest", vr::TrackedDeviceClass_GenericTracker, m_pTracker6);
 
 	// Transform from IMU ENU frame (X right, Y front, Z up) to driver frame (X right, Y up, Z back)
 	bk->setDriverTransform(bk->euXYZ_to_quat(90.0 * PI / 180.0, 0, 0)); // Rotate X 90 deg
@@ -670,6 +750,8 @@ void DeviceProvider::Cleanup()
 	m_pTracker4 = NULL;
 	delete m_pTracker5;
 	m_pTracker5 = NULL;
+	delete m_pTracker6;
+	m_pTracker6 = NULL;
 }
 
 void DeviceProvider::RunFrame()
@@ -687,7 +769,7 @@ void DeviceProvider::RunFrame()
 		for (int k = 0; k < 3; k++) {
 			p_hmd(k) = hmdMatrix.m[k][3];
 		}
-		bk->update(imu_lshin, imu_rshin, imu_lthigh, imu_rthigh, imu_waist, Quaternionf(mat_hmd), p_hmd);
+		bk->update(imu_lshin, imu_rshin, imu_lthigh, imu_rthigh, imu_waist, imu_chest, Quaternionf(mat_hmd), p_hmd);
 		hmd_available = true;
 	}
 	else {
@@ -701,7 +783,7 @@ void DeviceProvider::RunFrame()
 		case VREvent_StandingZeroPoseReset:
 			float yaw = atan2f(-mat_hmd(2, 0), mat_hmd(0, 0));
 			Quaternionf direction = bk->euYXZ_to_quat(yaw, 0, 0);
-			bk->setOffset(imu_lshin, imu_rshin, imu_lthigh, imu_rthigh, imu_waist, direction);
+			bk->setOffset(imu_lshin, imu_rshin, imu_lthigh, imu_rthigh, imu_waist, imu_chest, direction);
 		}
 	}
 
@@ -724,6 +806,10 @@ void DeviceProvider::RunFrame()
 	if (m_pTracker5)
 	{
 		m_pTracker5->RunFrame();
+	}
+	if (m_pTracker6)
+	{
+		m_pTracker6->RunFrame();
 	}
 }
 

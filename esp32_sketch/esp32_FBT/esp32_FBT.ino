@@ -8,6 +8,11 @@
 #define DEBUG false
 #define DEBUG_PRINT if(DEBUG)Serial
 
+char header[128];
+char networkSSID[128];
+char networkPassword[128];
+int serialLength;
+
 IPAddress udpAddress(0, 0, 0, 0);
 const int serverPort = 61032;
 const int driverPort = 61035;
@@ -54,7 +59,7 @@ uint8_t led_state = 0;
 BNO080 myIMU;
 
 float battery_voltage() {
-  return get_battery_voltage(analogRead(batt_monitor_pin));
+  return get_battery_voltage(analogReadMilliVolts(batt_monitor_pin));
 }
 
 void reset_imu() {
@@ -98,9 +103,11 @@ void setup(){
   ping.e = mac[4];
   ping.f = mac[5];
   
-  DEBUG_PRINT.begin(115200);
+  Serial.begin(115200);
   
-  connectToWiFi(networkName, networkPswd);
+  WiFi.onEvent(WiFiEvent);
+  WiFi.begin();
+  WiFi.setTxPower(txPower);
 
   pinMode(reset_pin, OUTPUT);
   digitalWrite(reset_pin, HIGH);
@@ -127,6 +134,24 @@ void setup(){
 }
 
 void loop(){
+  serialLength = Serial.available();
+  if (serialLength) {
+    Serial.readBytesUntil('\n', header, sizeof(header));
+    if (String(header) == "111") {
+      Serial.readBytesUntil('\n', networkSSID, sizeof(networkSSID));
+      Serial.readBytesUntil('\n', networkPassword, sizeof(networkPassword));
+      connectToWiFi(networkSSID, networkPassword);
+      Serial.write(110);
+    }
+    else {
+      char junk[serialLength];
+      Serial.readBytes(junk, sizeof(junk));
+    }
+    memset(header, 0, sizeof(header));
+    memset(networkSSID, 0, sizeof(networkSSID));
+    memset(networkPassword, 0, sizeof(networkPassword));
+  }
+  
   if(connected){
     
     udp.parsePacket();
