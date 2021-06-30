@@ -19,10 +19,17 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="driver_imuFBT.cpp" />
+    <ClCompile Include="src\ImuUDP.cpp" />
+    <ClCompile Include="src\TrackerDriver.cpp" />
+    <ClCompile Include="src\DeviceFactory.cpp" />
+    <ClCompile Include="src\DeviceProvider.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="headers\TrackerDriver.h" />
+    <ClInclude Include="headers\DeviceProvider.h" />
+    <ClInclude Include="headers\Globals.h" />
     <ClInclude Include="headers\kinematics.h" />
+    <ClInclude Include="headers\ImuUDP.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

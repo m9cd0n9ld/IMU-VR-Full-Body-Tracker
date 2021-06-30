@@ -1,7 +1,7 @@
 # IMU-VR-Full-Body-Tracker
  Inside-out full body tracker for Steam VR based on ESP32 with BNO080/085 IMU.  
  No base station is required, completely wireless using WiFi.  
- Compatible with any VR headset that supports Steam VR.  
+ Should be compatible with any VR headset that supports Steam VR.  
  Requires minimum 1 set of ESP32 + BNO080/085 to track waist, hand (controllers) and head (headset) for 4 point body tracking in Steam VR.  
  Requires minimum 5 sets of ESP32 + BNO080/085 to track waist, thigh, leg, hand (controllers) and head (headset) for 6 point body tracking in Steam VR.  
  Optional extra 1 set of ESP32 + BNO080/085 to track chest for improved skeleton kinematic model accuracy.  
