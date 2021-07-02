@@ -14,8 +14,8 @@ char networkPassword[128];
 int serialLength;
 
 IPAddress udpAddress(0, 0, 0, 0);
-const int serverPort = 61032;
-const int driverPort = 61035;
+const int serverPort = 6969;
+int driverPort = 0;
 
 boolean connected = false;
 
@@ -23,10 +23,13 @@ WiFiUDP udp;
 AsyncUDP Audp;
 
 struct __attribute__((packed)) PingBroad {
+  uint8_t header = (uint8_t)'I';
   uint8_t id = 77;
+  uint8_t footer = (uint8_t)'i';
 } pingbroad;
 
 struct __attribute__((packed)) Ping {
+  uint8_t header = (uint8_t)'I';
   uint8_t id = 0;
   uint8_t a;
   uint8_t b;
@@ -35,19 +38,25 @@ struct __attribute__((packed)) Ping {
   uint8_t e;
   uint8_t f;
   float batt = 0;
+  uint8_t footer = (uint8_t)'i';
 } ping;
 
 struct __attribute__((packed)) Ack {
+  uint8_t header;
   uint8_t reply;
   uint8_t id;
+  uint16_t driverPort;
+  uint8_t footer;
 } ack;
 
 struct __attribute__((packed)) Payload {
+  uint8_t header = (uint8_t)'I';
   uint8_t id = 0;
   float x = 0;
   float y = 0;
   float z = 0;
   float w = 1;
+  uint8_t footer = (uint8_t)'i';
 } payload;
 
 uint32_t broadcast_delay = random(3000, 5001);
@@ -156,16 +165,17 @@ void loop(){
     
     udp.parsePacket();
     if (udp.read((uint8_t*)&ack, sizeof(ack)) > 0) {
-      if (ack.reply == 200) {
+      if (ack.reply == 200 && ack.header == (uint8_t)'I' && ack.footer == (uint8_t)'i') {
         udpAddress = udp.remoteIP();
         payload.id = ack.id;
         ping.id = ack.id;
+        driverPort = ack.driverPort;
         recv_watchdog = millis();
       }
     }
     
     if (udpAddress != IPAddress(0, 0, 0, 0)) {
-      if (myIMU.dataAvailable() && payload.id != 0) {
+      if (myIMU.dataAvailable() && payload.id != 0  && driverPort != 0) {
         payload.x = myIMU.getQuatI();
         payload.y = myIMU.getQuatJ();
         payload.z = myIMU.getQuatK();
@@ -212,6 +222,7 @@ void loop(){
   }
   if (millis() - recv_watchdog >= 3000) {
     udpAddress = IPAddress(0, 0, 0, 0);
+    driverPort = 0;
   }
 }
 

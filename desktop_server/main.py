@@ -149,60 +149,80 @@ class ImuFbtServer(App):
         
     def calibrate_imu(self):
         payload = struct.pack('<B', 51)
-        self.sock_tx.sendto(payload, ('127.0.0.1', self.driverPort))
+        if self.driverPort != 0:
+            self.sock_listen.sendto(self.wrap_payload(payload), ('127.0.0.1', self.driverPort))
+        
+    def check_payload(self, payload):
+        if payload[0] == ord('I') and payload[-1] == ord('i'):
+            return True
+        else:
+            return False
+        
+    def wrap_payload(self, payload):
+        header = b'I'
+        footer = b'i'
+        return header + payload + footer
+    
+    def unwrap_payload(self, payload):
+        return payload[1:-1]
         
     def udp(self):
-        sock_listen = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.sock_tx = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        serverPort = 61032
-        self.driverPort = 61035
-        sock_listen.bind(('0.0.0.0', serverPort))
-        sock_listen.settimeout(0.1)
+        self.sock_listen = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        serverPort = 6969
+        self.driverPort = 0
+        self.sock_listen.bind(('0.0.0.0', serverPort))
+        self.sock_listen.settimeout(0.1)
         t_tx_driver = time.perf_counter()
         while self.thread_run:
             try:
-                payload, addr = sock_listen.recvfrom(16)
-                if len(payload) == 1:
-                    if payload[0] == 77:
+                payload, addr = self.sock_listen.recvfrom(32)
+                if self.check_payload(payload):
+                    payload = self.unwrap_payload(payload)
+                    if len(payload) == 1:
+                        if payload[0] == 77:
+                            ip = addr[0]
+                            reply = struct.pack('<BBH', 200, 0, self.driverPort)
+                            self.sock_listen.sendto(self.wrap_payload(reply), (ip, serverPort))
+                    elif len(payload) == 3:
+                        if payload[0] == 87:
+                            _, self.driverPort = struct.unpack('<BH', payload)
+                            if not self.focused:
+                                self.set_driver_settings()
+                            t_tx_driver = time.perf_counter()
+                    elif len(payload) == 11:
+                        mac = binascii.hexlify(payload[1:7]).decode()
                         ip = addr[0]
-                        reply = struct.pack('<BB', 200, 0)
-                        sock_listen.sendto(reply, (ip, serverPort))
-                elif len(payload) == 11:
-                    mac = binascii.hexlify(payload[1:7]).decode()
-                    ip = addr[0]
-                    battery = struct.unpack('<f', payload[7:])[0]
-                    battery = '{:.2f}'.format(battery)
-                    role = ROLE[payload[0]]
-                    self.devices_online[mac] = time.perf_counter()
-                    if mac + '_list' not in self.root.ids.keys():
-                        DeviceList_widget = DeviceList(mac, ip, battery, role)
-                        self.root.ids.stack_list.add_widget(DeviceList_widget)
-                        self.root.ids[mac + '_list'] = DeviceList_widget
-                    else:
-                        self.root.ids[mac + '_list_mac'].text = str(mac)
-                        self.root.ids[mac + '_list_ip'].text = str(ip)
-                        self.root.ids[mac + '_list_battery'].text = str(battery)
-                        self.root.ids[mac + '_list_role'].text = str(role)
-                    if mac + '_role' not in self.root.ids.keys():
-                        if mac in self.devices_list.keys():
-                            role = self.devices_list[mac]
+                        battery = struct.unpack('<f', payload[7:])[0]
+                        battery = '{:.2f}'.format(battery)
+                        role = ROLE[payload[0]]
+                        self.devices_online[mac] = time.perf_counter()
+                        if mac + '_list' not in self.root.ids.keys():
+                            DeviceList_widget = DeviceList(mac, ip, battery, role)
+                            self.root.ids.stack_list.add_widget(DeviceList_widget)
+                            self.root.ids[mac + '_list'] = DeviceList_widget
                         else:
-                            role = ROLE[0]
-                            self.devices_list[mac] = role
-                        RoleList_widget = RoleList(mac, ip, role)
-                        self.root.ids.stack_role.add_widget(RoleList_widget)
-                        self.root.ids[mac + '_role'] = RoleList_widget
-                    else:
-                        self.root.ids[mac + '_role_mac'].text = str(mac)
-                        self.root.ids[mac + '_role_ip'].text = str(ip)
-                    reply = struct.pack('<BB', 200, ROLE.index(self.devices_list[mac]))
-                    sock_listen.sendto(reply, (ip, serverPort))
+                            self.root.ids[mac + '_list_mac'].text = str(mac)
+                            self.root.ids[mac + '_list_ip'].text = str(ip)
+                            self.root.ids[mac + '_list_battery'].text = str(battery)
+                            self.root.ids[mac + '_list_role'].text = str(role)
+                        if mac + '_role' not in self.root.ids.keys():
+                            if mac in self.devices_list.keys():
+                                role = self.devices_list[mac]
+                            else:
+                                role = ROLE[0]
+                                self.devices_list[mac] = role
+                            RoleList_widget = RoleList(mac, ip, role)
+                            self.root.ids.stack_role.add_widget(RoleList_widget)
+                            self.root.ids[mac + '_role'] = RoleList_widget
+                        else:
+                            self.root.ids[mac + '_role_mac'].text = str(mac)
+                            self.root.ids[mac + '_role_ip'].text = str(ip)
+                        reply = struct.pack('<BBH', 200, ROLE.index(self.devices_list[mac]), self.driverPort)
+                        self.sock_listen.sendto(self.wrap_payload(reply), (ip, serverPort))                        
             except socket.timeout:
                 pass
-            if time.perf_counter() - t_tx_driver >= 1:
-                if not self.focused:
-                    self.set_driver_settings()
-                    t_tx_driver = time.perf_counter()
+            if time.perf_counter() - t_tx_driver >= 3:
+                self.driverPort = 0
             to_del = []
             for k, v in self.devices_online.items():
                 if time.perf_counter() - v >= 3:
@@ -220,8 +240,7 @@ class ImuFbtServer(App):
                 del self.root.ids[k + '_role_mac']
                 del self.root.ids[k + '_role_ip']
                 del self.root.ids[k + '_role_role']
-        sock_listen.close()
-        self.sock_tx.close()
+        self.sock_listen.close()
 
     def set_driver_settings(self):
         T_lshin_drv = [math.radians(float(self.root.ids.lshin_x_text.text)),
@@ -270,7 +289,7 @@ class ImuFbtServer(App):
                          waist_sensor_h,
                          chest_sensor_h)
         struct.pack_into('<?', payload, 108, chest_enable)
-        self.sock_tx.sendto(payload, ('127.0.0.1', self.driverPort))
+        self.sock_listen.sendto(self.wrap_payload(payload), ('127.0.0.1', self.driverPort))
 
     def on_start(self):
         self.settings_bak = os.path.join(os.path.expanduser('~'),

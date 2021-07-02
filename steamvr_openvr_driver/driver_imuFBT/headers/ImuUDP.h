@@ -19,14 +19,18 @@ private:
 	void start();
 
 	PACK(struct Payload {
+		uint8_t header;
 		uint8_t id;
 		float x;
 		float y;
 		float z;
 		float w;
+		uint8_t footer;
 	});
 
 	PACK(struct PayloadSettings {
+		uint8_t header;
+
 		float lshin_x;
 		float lshin_y;
 		float lshin_z;
@@ -62,23 +66,39 @@ private:
 		float chest_sensor;
 
 		bool chest_en;
+
+		uint8_t footer;
 	});
 
 	PACK(struct Calibrate {
+		uint8_t header;
 		uint8_t calib;
+		uint8_t footer;
+	});
+
+	PACK(struct Ping {
+		uint8_t header;
+		uint8_t msg;
+		uint16_t driverPort;
+		uint8_t footer;
 	});
 
 	Payload* payload;
 	PayloadSettings* payload_settings;
 	Calibrate* calibrate;
+	Ping ping;
 
 	SOCKET socketS;
 	int bytes_read;
 	sockaddr_in local;
 	int locallen = sizeof(local);
 	bool bKeepReading = false;
-	const uint16_t driverPort = 61035;
+	uint16_t driverPort = 0;
 	char buff[128];
+
+	sockaddr_in localT;
+	int locallenT = sizeof(localT);
+	const uint16_t serverPort = 6969;
 
 	std::thread* pSocketThread = NULL;
 
@@ -88,6 +108,8 @@ private:
 	std::chrono::high_resolution_clock::time_point t_rthigh_last = std::chrono::high_resolution_clock::now();
 	std::chrono::high_resolution_clock::time_point t_waist_last = std::chrono::high_resolution_clock::now();
 	std::chrono::high_resolution_clock::time_point t_chest_last = std::chrono::high_resolution_clock::now();
+
+	std::chrono::high_resolution_clock::time_point t_server_last = std::chrono::high_resolution_clock::now();
 
 	std::chrono::high_resolution_clock::time_point t_end = std::chrono::high_resolution_clock::now();
 	double elapsed_time_ms;
