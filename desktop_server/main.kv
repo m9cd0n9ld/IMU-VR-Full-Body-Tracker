@@ -1,5 +1,5 @@
 <InputText@TextInput>:
-	size_hint_x: 0.2
+	size_hint_x: 0.25
 	multiline: False
 	write_tab: False
 	input_filter: "float"
@@ -26,19 +26,23 @@ TabbedPanel:
 				size_hint_y: 0.1
 				spacing: 5
 				Label:
-					size_hint_x: 0.25
+					size_hint_x: 0.2
 					text: '[b]MAC[/b]'
 					markup: True
 				Label:
-					size_hint_x: 0.25
+					size_hint_x: 0.2
 					text: '[b]IP[/b]'
 					markup: True
 				Label:
-					size_hint_x: 0.25
+					size_hint_x: 0.2
 					text: '[b]Battery (V)[/b]'
 					markup: True
 				Label:
-					size_hint_x: 0.25
+					size_hint_x: 0.2
+					text: '[b]Battery (%)[/b]'
+					markup: True
+				Label:
+					size_hint_x: 0.2
 					text: '[b]Role[/b]'
 					markup: True
 			StackLayout:
@@ -90,41 +94,34 @@ TabbedPanel:
 			orientation: 'vertical'
 			spacing: 5
             Label:
-				size_hint_y: 2/20
+				size_hint_y: 2/23
                 text: '[b]Sensor XYZ rotation to driver frame in degree[/b]'
 				markup: True
 				font_size: '25sp'
 			BoxLayout:
-				size_hint_y: 1/20
+				size_hint_y: 1/23
 				spacing: 10
 				Label:
-					size_hint_x: 0.2
-					text: '[b]Enable[/b]'
-					markup: True
-				Label:
-					size_hint_x: 0.2
+					size_hint_x: 0.25
 					text: '[b]Body parts[/b]'
 					markup: True
 				Label:
-					size_hint_x: 0.2
+					size_hint_x: 0.25
 					text: '[b]X (right)[/b]'
 					markup: True
 				Label:
-					size_hint_x: 0.2
+					size_hint_x: 0.25
 					text: '[b]Y (up)[/b]'
 					markup: True
 				Label:
-					size_hint_x: 0.2
+					size_hint_x: 0.25
 					text: '[b]Z (back)[/b]'
 					markup: True
 			BoxLayout:
-				size_hint_y: 1/20
+				size_hint_y: 1/23
 				spacing: 10
 				Label:
-					size_hint_x: 0.2
-					text: ''
-				Label:
-					size_hint_x: 0.2
+					size_hint_x: 0.25
 					text: '[b]Left shin[/b]'
 					markup: True
 				InputText:
@@ -137,13 +134,10 @@ TabbedPanel:
 					id: lshin_z_text
 					text: '0'
 			BoxLayout:
-				size_hint_y: 1/20
+				size_hint_y: 1/23
 				spacing: 10
 				Label:
-					size_hint_x: 0.2
-					text: ''
-				Label:
-					size_hint_x: 0.2
+					size_hint_x: 0.25
 					text: '[b]Right shin[/b]'
 					markup: True
 				InputText:
@@ -156,13 +150,10 @@ TabbedPanel:
 					id: rshin_z_text
 					text: '0'
 			BoxLayout:
-				size_hint_y: 1/20
+				size_hint_y: 1/23
 				spacing: 10
 				Label:
-					size_hint_x: 0.2
-					text: ''
-				Label:
-					size_hint_x: 0.2
+					size_hint_x: 0.25
 					text: '[b]Left thigh[/b]'
 					markup: True
 				InputText:
@@ -175,13 +166,10 @@ TabbedPanel:
 					id: lthigh_z_text
 					text: '0'
 			BoxLayout:
-				size_hint_y: 1/20
+				size_hint_y: 1/23
 				spacing: 10
 				Label:
-					size_hint_x: 0.2
-					text: ''
-				Label:
-					size_hint_x: 0.2
+					size_hint_x: 0.25
 					text: '[b]Right thigh[/b]'
 					markup: True
 				InputText:
@@ -194,13 +182,10 @@ TabbedPanel:
 					id: rthigh_z_text
 					text: '0'
 			BoxLayout:
-				size_hint_y: 1/20
+				size_hint_y: 1/23
 				spacing: 10
 				Label:
-					size_hint_x: 0.2
-					text: ''
-				Label:
-					size_hint_x: 0.2
+					size_hint_x: 0.25
 					text: '[b]Waist[/b]'
 					markup: True
 				InputText:
@@ -213,14 +198,10 @@ TabbedPanel:
 					id: waist_z_text
 					text: '0'
 			BoxLayout:
-				size_hint_y: 1/20
+				size_hint_y: 1/23
 				spacing: 10
-				CheckBox:
-					id: chest_en_check
-					size_hint_x: 0.2
-					active: False
 				Label:
-					size_hint_x: 0.2
+					size_hint_x: 0.25
 					text: '[b]Chest[/b]'
 					markup: True
 				InputText:
@@ -236,12 +217,12 @@ TabbedPanel:
 					text: '0'
 					disabled: not chest_en_check.active
 			Label:
-				size_hint_y: 2/20
+				size_hint_y: 2/23
                 text: '[b]Paramater settings in meter[/b]'
 				markup: True
 				font_size: '25sp'
 			BoxLayout:
-				size_hint_y: 1/20
+				size_hint_y: 1/23
 				Label:
 					size_hint_x: 0.5
 					text: '[b]Shin length (Knee to foot)[/b]'
@@ -253,7 +234,7 @@ TabbedPanel:
 					size_hint_x: 0.1
 					text: '{:.2f}'.format(shin_h.value)
 			BoxLayout:
-				size_hint_y: 1/20
+				size_hint_y: 1/23
 				Label:
 					size_hint_x: 0.5
 					text: '[b]Thigh length (Hip to knee)[/b]'
@@ -265,7 +246,7 @@ TabbedPanel:
 					size_hint_x: 0.1
 					text: '{:.2f}'.format(thigh_h.value)
 			BoxLayout:
-				size_hint_y: 1/20
+				size_hint_y: 1/23
 				Label:
 					size_hint_x: 0.5
 					text: '[b]Back length (Hip to neck)[/b]'
@@ -277,7 +258,7 @@ TabbedPanel:
 					size_hint_x: 0.1
 					text: '{:.2f}'.format(back_h.value)
 			BoxLayout:
-				size_hint_y: 1/20
+				size_hint_y: 1/23
 				Label:
 					size_hint_x: 0.5
 					text: '[b]Head length (Neck to HMD / eye level)[/b]'
@@ -289,7 +270,7 @@ TabbedPanel:
 					size_hint_x: 0.1
 					text: '{:.2f}'.format(head_h.value)
 			BoxLayout:
-				size_hint_y: 1/20
+				size_hint_y: 1/23
 				Label:
 					size_hint_x: 0.5
 					text: '[b]Hip width[/b]'
@@ -301,7 +282,7 @@ TabbedPanel:
 					size_hint_x: 0.1
 					text: '{:.2f}'.format(hip_width_h.value)
 			BoxLayout:
-				size_hint_y: 1/20
+				size_hint_y: 1/23
 				Label:
 					size_hint_x: 0.5
 					text: '[b]Shin sensor position (Knee to sensor)[/b]'
@@ -314,7 +295,7 @@ TabbedPanel:
 					size_hint_x: 0.1
 					text: '{:.2f}'.format(shin_sensor_h.value)
 			BoxLayout:
-				size_hint_y: 1/20
+				size_hint_y: 1/23
 				Label:
 					size_hint_x: 0.5
 					text: '[b]Thigh sensor position (Hip to sensor)[/b]'
@@ -327,7 +308,7 @@ TabbedPanel:
 					size_hint_x: 0.1
 					text: '{:.2f}'.format(thigh_sensor_h.value)
 			BoxLayout:
-				size_hint_y: 1/20
+				size_hint_y: 1/23
 				Label:
 					size_hint_x: 0.5
 					text: '[b]Waist sensor position (Hip to sensor)[/b]'
@@ -340,7 +321,7 @@ TabbedPanel:
 					size_hint_x: 0.1
 					text: '{:.2f}'.format(waist_sensor_h.value)
 			BoxLayout:
-				size_hint_y: 1/20
+				size_hint_y: 1/23
 				Label:
 					size_hint_x: 0.5
 					text: '[b]Chest sensor position (Neck to sensor)[/b]'
@@ -353,6 +334,21 @@ TabbedPanel:
 				Label:
 					size_hint_x: 0.1
 					text: '{:.2f}'.format(chest_sensor_h.value)
+			Label:
+				size_hint_y: 2/23
+                text: '[b]Additional settings[/b]'
+				markup: True
+				font_size: '25sp'
+			BoxLayout:
+				size_hint_y: 1/23
+				Label:
+					size_hint_x: 0.7
+					text: '[b]Enable chest sensor for improved kinematics[/b]'
+					markup: True
+				Switch:
+					id: chest_en_check
+					size_hint_x: 0.3
+					active: False
 
 	TabbedPanelItem:
 		text: 'WiFi Settings'

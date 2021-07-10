@@ -1,6 +1,11 @@
 #pragma once
 
 #include <kinematics.h>
+#include <thread>
+#include <chrono>
+#include <WinSock2.h>
+#include <Ws2tcpip.h>
+#pragma comment(lib, "ws2_32.lib")
 
 #define LSHIN 1
 #define RSHIN 2

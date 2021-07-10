@@ -2,9 +2,9 @@ from kivy.config import Config
 Config.set('graphics', 'maxfps', '1000')
 Config.set('input', 'mouse', 'mouse,disable_multitouch')
 Config.set('graphics', 'width', '600')
-Config.set('graphics', 'height', '700')
+Config.set('graphics', 'height', '750')
 Config.set('graphics', 'minimum_width', '600')
-Config.set('graphics', 'minimum_height', '700')
+Config.set('graphics', 'minimum_height', '750')
 Config.set('kivy','window_icon','icon.ico')
 from kivy.app import App
 from kivy.lang import Builder
@@ -41,6 +41,11 @@ def resource_path(file):
         directory = os.path.abspath('.')
     return os.path.join(directory, file)
 
+def battPercent(v):
+    v = float(v)
+    denominator = (1 + (v / 3.7)**80)**0.165
+    return int(123 - 123 / denominator)
+
 class RoleList(BoxLayout):
     def __init__(self, mac, ip, role):
         super().__init__()
@@ -72,18 +77,21 @@ class DeviceList(BoxLayout):
         self.height = App.get_running_app().root.ids.boxlayout_ref.height/2
         self.size_hint_y = None
         self.spacing = 5
-        L1 = Label(size_hint_x=0.25, text=str(mac))
-        L2 = Label(size_hint_x=0.25, text=str(ip))
-        L3 = Label(size_hint_x=0.25, text=str(battery))
-        L4 = Label(size_hint_x=0.25, text=str(role))
+        L1 = Label(size_hint_x=0.2, text=str(mac))
+        L2 = Label(size_hint_x=0.2, text=str(ip))
+        L3 = Label(size_hint_x=0.2, text=str(battery))
+        L4 = Label(size_hint_x=0.2, text=str(battPercent(battery)))
+        L5 = Label(size_hint_x=0.2, text=str(role))
         App.get_running_app().root.ids[mac + '_list_mac'] = L1
         App.get_running_app().root.ids[mac + '_list_ip'] = L2
         App.get_running_app().root.ids[mac + '_list_battery'] = L3
-        App.get_running_app().root.ids[mac + '_list_role'] = L4
+        App.get_running_app().root.ids[mac + '_list_percent'] = L4
+        App.get_running_app().root.ids[mac + '_list_role'] = L5
         self.add_widget(L1)
         self.add_widget(L2)
         self.add_widget(L3)
         self.add_widget(L4)
+        self.add_widget(L5)
 
 class ImuFbtServer(App):
     devices_list = {}
@@ -170,6 +178,7 @@ class ImuFbtServer(App):
         self.sock_listen = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         serverPort = 6969
         self.driverPort = 0
+        self.sock_listen.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock_listen.bind(('0.0.0.0', serverPort))
         self.sock_listen.settimeout(0.1)
         t_tx_driver = time.perf_counter()
@@ -204,6 +213,7 @@ class ImuFbtServer(App):
                             self.root.ids[mac + '_list_mac'].text = str(mac)
                             self.root.ids[mac + '_list_ip'].text = str(ip)
                             self.root.ids[mac + '_list_battery'].text = str(battery)
+                            self.root.ids[mac + '_list_percent'].text = str(battPercent(battery))
                             self.root.ids[mac + '_list_role'].text = str(role)
                         if mac + '_role' not in self.root.ids.keys():
                             if mac in self.devices_list.keys():
@@ -235,6 +245,7 @@ class ImuFbtServer(App):
                 del self.root.ids[k + '_list_mac']
                 del self.root.ids[k + '_list_ip']
                 del self.root.ids[k + '_list_battery']
+                del self.root.ids[k + '_list_percent']
                 del self.root.ids[k + '_list_role']
                 del self.root.ids[k + '_role']
                 del self.root.ids[k + '_role_mac']
@@ -291,7 +302,7 @@ class ImuFbtServer(App):
         struct.pack_into('<?', payload, 108, chest_enable)
         self.sock_listen.sendto(self.wrap_payload(payload), ('127.0.0.1', self.driverPort))
 
-    def on_start(self):
+    def on_start(self):        
         self.settings_bak = os.path.join(os.path.expanduser('~'),
                                 'Documents',
                                 'imuFBT_settings_bak_{}.ini'.format(VERSION))

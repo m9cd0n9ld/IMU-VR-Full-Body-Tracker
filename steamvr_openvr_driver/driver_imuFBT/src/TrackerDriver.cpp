@@ -33,32 +33,6 @@ EVRInitError TrackerDriver::Activate(TrackedDeviceIndex_t unObjectId)
 	VRProperties()->SetStringProperty(m_ulPropertyContainer, Prop_TrackingFirmwareVersion_String, version.c_str());
 	VRProperties()->SetStringProperty(m_ulPropertyContainer, Prop_HardwareRevision_String, version.c_str());
 
-	VRProperties()->SetStringProperty(m_ulPropertyContainer, Prop_ConnectedWirelessDongle_String, version.c_str());
-	VRProperties()->SetBoolProperty(m_ulPropertyContainer, Prop_DeviceIsWireless_Bool, true);
-	VRProperties()->SetBoolProperty(m_ulPropertyContainer, Prop_DeviceIsCharging_Bool, false);
-	VRProperties()->SetFloatProperty(m_ulPropertyContainer, Prop_DeviceBatteryPercentage_Float, 1.0f);
-
-	VRProperties()->SetBoolProperty(m_ulPropertyContainer, Prop_Firmware_UpdateAvailable_Bool, false);
-	VRProperties()->SetBoolProperty(m_ulPropertyContainer, Prop_Firmware_ManualUpdate_Bool, true);
-	VRProperties()->SetStringProperty(m_ulPropertyContainer, Prop_Firmware_ManualUpdateURL_String, "https://github.com/m9cd0n9ld/IMU-VR-Full-Body-Tracker");
-	VRProperties()->SetUint64Property(m_ulPropertyContainer, Prop_HardwareRevision_Uint64, 0);
-	VRProperties()->SetUint64Property(m_ulPropertyContainer, Prop_FirmwareVersion_Uint64, 0);
-	VRProperties()->SetUint64Property(m_ulPropertyContainer, Prop_FPGAVersion_Uint64, 0);
-	VRProperties()->SetUint64Property(m_ulPropertyContainer, Prop_VRCVersion_Uint64, 0);
-	VRProperties()->SetUint64Property(m_ulPropertyContainer, Prop_RadioVersion_Uint64, 0);
-	VRProperties()->SetUint64Property(m_ulPropertyContainer, Prop_DongleVersion_Uint64, 0);
-
-
-
-	VRProperties()->SetBoolProperty(m_ulPropertyContainer, Prop_DeviceProvidesBatteryStatus_Bool, true);
-	VRProperties()->SetBoolProperty(m_ulPropertyContainer, Prop_DeviceCanPowerOff_Bool, true);
-	VRProperties()->SetStringProperty(m_ulPropertyContainer, Prop_Firmware_ProgrammingTarget_String, version.c_str());
-
-
-
-	VRProperties()->SetBoolProperty(m_ulPropertyContainer, Prop_Firmware_ForceUpdateRequired_Bool, false);
-
-	VRProperties()->SetUint64Property(m_ulPropertyContainer, Prop_ParentDriver_Uint64, 0);
 	VRProperties()->SetStringProperty(m_ulPropertyContainer, Prop_ResourceRoot_String, "imuFBT");
 	std::string RegisteredDeviceType_String = std::string("imuFBT/");
 	RegisteredDeviceType_String += model.c_str();
@@ -66,46 +40,14 @@ EVRInitError TrackerDriver::Activate(TrackedDeviceIndex_t unObjectId)
 	VRProperties()->SetStringProperty(m_ulPropertyContainer, Prop_InputProfilePath_String, "{imuFBT}/input/imuFBT_profile.json");
 	VRProperties()->SetBoolProperty(m_ulPropertyContainer, Prop_NeverTracked_Bool, false);
 
-
-	VRProperties()->SetBoolProperty(m_ulPropertyContainer, Prop_Identifiable_Bool, true);
-	VRProperties()->SetBoolProperty(m_ulPropertyContainer, Prop_CanWirelessIdentify_Bool, true);
-
-	VRProperties()->SetBoolProperty(m_ulPropertyContainer, Prop_Firmware_RemindUpdate_Bool, false);
-
-	VRProperties()->SetBoolProperty(m_ulPropertyContainer, Prop_ReportsTimeSinceVSync_Bool, false);
-
 	VRProperties()->SetUint64Property(m_ulPropertyContainer, Prop_CurrentUniverseId_Uint64, 2);
-	VRProperties()->SetUint64Property(m_ulPropertyContainer, Prop_PreviousUniverseId_Uint64, 2);
-
-	VRProperties()->SetBoolProperty(m_ulPropertyContainer, Prop_DisplaySupportsRuntimeFramerateChange_Bool, false);
-	VRProperties()->SetBoolProperty(m_ulPropertyContainer, Prop_DisplaySupportsAnalogGain_Bool, false);
-	VRProperties()->SetFloatProperty(m_ulPropertyContainer, Prop_DisplayMinAnalogGain_Float, 1.0f);
-	VRProperties()->SetFloatProperty(m_ulPropertyContainer, Prop_DisplayMaxAnalogGain_Float, 1.0f);
-
 
 	VRProperties()->SetBoolProperty(m_ulPropertyContainer, Prop_HasDisplayComponent_Bool, false);
 	VRProperties()->SetBoolProperty(m_ulPropertyContainer, Prop_HasCameraComponent_Bool, false);
 	VRProperties()->SetBoolProperty(m_ulPropertyContainer, Prop_HasDriverDirectModeComponent_Bool, false);
 	VRProperties()->SetBoolProperty(m_ulPropertyContainer, Prop_HasVirtualDisplayComponent_Bool, false);
 
-	VRProperties()->SetInt32Property(m_ulPropertyContainer, Prop_ControllerHandSelectionPriority_Int32, 0);
-
-	VRDriverInput()->CreateBooleanComponent(m_ulPropertyContainer, "/input/Button0/click", &ButtonComponent[0]);
-	VRDriverInput()->CreateBooleanComponent(m_ulPropertyContainer, "/input/Button1/click", &ButtonComponent[1]);
-	VRDriverInput()->CreateBooleanComponent(m_ulPropertyContainer, "/input/Button2/click", &ButtonComponent[2]);
-	VRDriverInput()->CreateBooleanComponent(m_ulPropertyContainer, "/input/Button3/click", &ButtonComponent[3]);
-	VRDriverInput()->CreateBooleanComponent(m_ulPropertyContainer, "/input/Button4/click", &ButtonComponent[4]);
-	VRDriverInput()->CreateBooleanComponent(m_ulPropertyContainer, "/input/Button5/click", &ButtonComponent[5]);
-	VRDriverInput()->CreateBooleanComponent(m_ulPropertyContainer, "/input/Button6/click", &ButtonComponent[6]);
-	VRDriverInput()->CreateBooleanComponent(m_ulPropertyContainer, "/input/Button7/click", &ButtonComponent[7]);
-
-	VRDriverInput()->CreateScalarComponent(m_ulPropertyContainer, "/input/Trigger0/value", &TriggerComponent[0], EVRScalarType::VRScalarType_Absolute, EVRScalarUnits::VRScalarUnits_NormalizedOneSided);
-	VRDriverInput()->CreateScalarComponent(m_ulPropertyContainer, "/input/Trigger1/value", &TriggerComponent[1], EVRScalarType::VRScalarType_Absolute, EVRScalarUnits::VRScalarUnits_NormalizedOneSided);
-
-	VRDriverInput()->CreateScalarComponent(m_ulPropertyContainer, "/input/Joystick0/x", &JoystickComponent[0], EVRScalarType::VRScalarType_Absolute, EVRScalarUnits::VRScalarUnits_NormalizedTwoSided);
-	VRDriverInput()->CreateScalarComponent(m_ulPropertyContainer, "/input/Joystick0/y", &JoystickComponent[1], EVRScalarType::VRScalarType_Absolute, EVRScalarUnits::VRScalarUnits_NormalizedTwoSided);
-
-	VRDriverInput()->CreateHapticComponent(m_ulPropertyContainer, "/output/haptic", &HapticComponent);
+	VRProperties()->SetInt32Property(m_ulPropertyContainer, Prop_ControllerHandSelectionPriority_Int32, -1);
 
 	return VRInitError_None;
 }

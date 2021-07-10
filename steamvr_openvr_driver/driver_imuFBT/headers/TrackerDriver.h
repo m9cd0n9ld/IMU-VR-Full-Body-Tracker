@@ -28,9 +28,4 @@ private:
 
 	TrackedDeviceIndex_t m_unObjectId = k_unTrackedDeviceIndexInvalid;
 	PropertyContainerHandle_t m_ulPropertyContainer = k_ulInvalidPropertyContainer;
-
-	VRInputComponentHandle_t ButtonComponent[8]{ 0 };
-	VRInputComponentHandle_t TriggerComponent[2]{ 0 };
-	VRInputComponentHandle_t JoystickComponent[2]{ 0 };
-	VRInputComponentHandle_t HapticComponent{ 0 };
 };

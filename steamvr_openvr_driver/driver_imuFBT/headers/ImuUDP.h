@@ -1,11 +1,6 @@
 #pragma once
 
 #include <Globals.h>
-#include <thread>
-#include <chrono>
-#include <WinSock2.h>
-#include <Ws2tcpip.h>
-#pragma comment(lib, "ws2_32.lib")
 
 #define PACK( __Declaration__ ) __pragma( pack(push, 1) ) __Declaration__ __pragma( pack(pop))
 
