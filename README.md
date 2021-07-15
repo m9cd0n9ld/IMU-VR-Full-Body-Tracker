@@ -32,7 +32,7 @@
  11. Open SteamVR.  
  12. The trackers will be shown in SteamVR environment at weird position and orientation on startup.  
  ![Before alignment](media/steamvr_sensors_not_aligned.png)  
- 13. Stand straight with feet hip-width apart and look forward, then reset SteamVR view to realign/calibrate the trackers, or press **Calibrate** button in **Devices** tab to realign/calibrate the trackers without resetting SteamVR view.  
+ 13. Stand straight look forward with feet pointing forward and hip-width apart, then press **Calibrate** button in **Devices** tab to realign/calibrate the trackers.  
  ![Alignment](media/steamvr_sensors_alignment.gif)  
  14. Done!  
  ![Final](media/final_result.gif)  
