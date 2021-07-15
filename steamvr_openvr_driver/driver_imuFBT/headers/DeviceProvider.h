@@ -17,8 +17,12 @@ public:
 	virtual bool ShouldBlockStandbyMode();
 	virtual void EnterStandby();
 	virtual void LeaveStandby();
+	void forwardKinematics();
 
 private:
+	bool kinematicsRun = false;
+	std::thread* kinematicsThread = NULL;
+
 	TrackerDriver* m_pTracker1 = nullptr;
 	TrackerDriver* m_pTracker2 = nullptr;
 	TrackerDriver* m_pTracker3 = nullptr;

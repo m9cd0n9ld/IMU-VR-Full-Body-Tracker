@@ -3,8 +3,8 @@
 		"/devices/imuFBT/lfoot": "TrackerRole_LeftFoot",
 		"/devices/imuFBT/rfoot": "TrackerRole_RightFoot",
 		"/devices/imuFBT/waist": "TrackerRole_Waist",
-		"/devices/imuFBT/lknee": "TrackerRole_LeftKnee",
-		"/devices/imuFBT/rknee": "TrackerRole_RightKnee",
-		"/devices/imuFBT/chest": "TrackerRole_Chest"
+		"/devices/imuFBT/lknee": "TrackerRole_None",
+		"/devices/imuFBT/rknee": "TrackerRole_None",
+		"/devices/imuFBT/chest": "TrackerRole_None"
 	}
 }

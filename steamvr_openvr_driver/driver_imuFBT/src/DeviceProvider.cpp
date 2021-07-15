@@ -72,6 +72,9 @@ EVRInitError DeviceProvider::Init(IVRDriverContext* pDriverContext)
 
 	udpThread->init();
 
+	kinematicsRun = true;
+	kinematicsThread = new std::thread(&DeviceProvider::forwardKinematics, this);
+
 	return VRInitError_None;
 }
 
@@ -80,6 +83,11 @@ void DeviceProvider::Cleanup()
 	udpThread->deinit();
 	delete udpThread;
 	udpThread = NULL;
+
+	kinematicsRun = false;
+	kinematicsThread->join();
+	delete kinematicsThread;
+	kinematicsThread = NULL;
 
 	delete m_pTracker1;
 	m_pTracker1 = NULL;
@@ -102,37 +110,6 @@ const char* const* DeviceProvider::GetInterfaceVersions()
 
 void DeviceProvider::RunFrame()
 {
-	TrackedDevicePose_t trackedDevicePoses[k_unMaxTrackedDeviceCount];
-	VRServerDriverHost()->GetRawTrackedDevicePoses(0, trackedDevicePoses, k_unMaxTrackedDeviceCount);
-
-	if (trackedDevicePoses[k_unTrackedDeviceIndex_Hmd].bPoseIsValid) {
-		HmdMatrix34_t hmdMatrix = trackedDevicePoses[k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking;
-		for (int i = 0; i < 3; i++) {
-			for (int j = 0; j < 3; j++) {
-				mat_hmd(i, j) = hmdMatrix.m[i][j];
-			}
-		}
-		for (int k = 0; k < 3; k++) {
-			p_hmd(k) = hmdMatrix.m[k][3];
-		}
-		bk->update(imu_lshin, imu_rshin, imu_lthigh, imu_rthigh, imu_waist, imu_chest, Quaternionf(mat_hmd), p_hmd);
-		hmd_available = true;
-	}
-	else {
-		hmd_available = false;
-	}
-
-	VREvent_t vrEvent;
-	while (VRServerDriverHost()->PollNextEvent(&vrEvent, sizeof(vrEvent)))
-	{
-		switch (vrEvent.eventType) {
-		case VREvent_StandingZeroPoseReset:
-			float yaw = atan2f(-mat_hmd(2, 0), mat_hmd(0, 0));
-			Quaternionf direction = bk->euYXZ_to_quat(yaw, 0, 0);
-			bk->setOffset(imu_lshin, imu_rshin, imu_lthigh, imu_rthigh, imu_waist, imu_chest, direction);
-		}
-	}
-
 	if (m_pTracker1)
 	{
 		m_pTracker1->RunFrame();
@@ -170,4 +147,29 @@ void DeviceProvider::EnterStandby()
 
 void DeviceProvider::LeaveStandby()
 {
+}
+
+void DeviceProvider::forwardKinematics() {
+	while (kinematicsRun) {
+		TrackedDevicePose_t trackedDevicePoses[k_unMaxTrackedDeviceCount];
+		VRServerDriverHost()->GetRawTrackedDevicePoses(0, trackedDevicePoses, k_unMaxTrackedDeviceCount);
+
+		if (trackedDevicePoses[k_unTrackedDeviceIndex_Hmd].bPoseIsValid) {
+			HmdMatrix34_t hmdMatrix = trackedDevicePoses[k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking;
+			for (int i = 0; i < 3; i++) {
+				for (int j = 0; j < 3; j++) {
+					mat_hmd(i, j) = hmdMatrix.m[i][j];
+				}
+			}
+			for (int k = 0; k < 3; k++) {
+				p_hmd(k) = hmdMatrix.m[k][3];
+			}
+			hmd_available = true;
+		}
+		else {
+			hmd_available = false;
+		}
+
+		bk->update(imu_lshin, imu_rshin, imu_lthigh, imu_rthigh, imu_waist, imu_chest, Quaternionf(mat_hmd), p_hmd);
+	}
 }
