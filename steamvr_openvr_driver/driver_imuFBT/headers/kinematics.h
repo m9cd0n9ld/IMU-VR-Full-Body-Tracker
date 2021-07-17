@@ -63,6 +63,14 @@ public:
 		chest_sensor = 0.2;
 
 		chest_enable = false;
+
+		lshin_hrzt_offset = Vector2f(0, 0);
+		rshin_hrzt_offset = Vector2f(0, 0);
+		lthigh_hrzt_offset = Vector2f(0, 0);
+		rthigh_hrzt_offset = Vector2f(0, 0);
+		waist_hrzt_offset = Vector2f(0, 0);
+		chest_hrzt_offset = Vector2f(0, 0);
+		head_hrzt_offset = Vector2f(0, 0);
 	}
 
 	// Euler XYZ to quaternion
@@ -85,18 +93,29 @@ public:
 		return q;
 	}
 
-	//Set positional parameters
+	//Set positional parameters (body segment length and sensor vertical position)
 	void setParam(float shin, float thigh, float back, float head, float hip_width, float shin_sensor, float thigh_sensor, float waist_sensor, float chest_sensor, bool chest_enable) {
-		this->shin = shin;
-		this->thigh = thigh;
-		this->back = back;
-		this->head = head;
-		this->hip_width = hip_width;
-		this->shin_sensor = shin_sensor;		// from knee
-		this->thigh_sensor = thigh_sensor;		// from hip
-		this->waist_sensor = waist_sensor;		// from hip
-		this->chest_sensor = chest_sensor;		// from neck
-		this->chest_enable = chest_enable;
+		this->shin = shin;						// knee to foot vertical length
+		this->thigh = thigh;					// knee to hip vertical length
+		this->back = back;						// hip to neck vertical length
+		this->head = head;						// neck to headset vertical length
+		this->hip_width = hip_width;			// hip horizontal width
+		this->shin_sensor = shin_sensor;		// knee to shin sensor vertical position
+		this->thigh_sensor = thigh_sensor;		// hip to thigh sensor vertical position
+		this->waist_sensor = waist_sensor;		// hip to waist sensor vertical position
+		this->chest_sensor = chest_sensor;		// neck to chest sensor vertical position
+		this->chest_enable = chest_enable;		// enable/disable chest sensor
+	}
+
+	//Set sensor horizontal offset position
+	void setHorizontalOffset(Vector2f lshin, Vector2f rshin, Vector2f lthigh, Vector2f rthigh, Vector2f waist, Vector2f chest, Vector2f head) {
+		lshin_hrzt_offset = lshin;
+		rshin_hrzt_offset = rshin;
+		lthigh_hrzt_offset = lthigh;
+		rthigh_hrzt_offset = rthigh;
+		waist_hrzt_offset = waist;
+		chest_hrzt_offset = chest;
+		head_hrzt_offset = head;
 	}
 
 	// Transform from IMU frame to driver frame (X right, Y up, Z back)
@@ -147,7 +166,7 @@ public:
 		Quaternionf imu_waist = offset_heading_waist * convertFrame(Imu_waist, T_waist) * offset_level_waist;
 		Quaternionf imu_chest = offset_heading_chest * convertFrame(Imu_chest, T_chest) * offset_level_chest;
 		
-		Vector3f P_neck = P_hmd - (Q_hmd * Quaternionf(0, 0, head, 0) * Q_hmd.inverse()).vec();
+		Vector3f P_neck = P_hmd - (Q_hmd * Quaternionf(0, head_hrzt_offset.coeff(0), head, head_hrzt_offset.coeff(1)) * Q_hmd.inverse()).vec();
 		Vector3f P_midback(0, 0, 0);
 		Vector3f P_chip(0, 0, 0);
 		if (chest_enable) {
@@ -165,38 +184,38 @@ public:
 		Vector3f P_rfoot = P_rknee + (imu_rshin * Quaternionf(0, 0, -shin, 0) * imu_rshin.inverse()).vec();
 
 		if (chest_enable) {
-			P_chest = P_neck - (imu_chest * Quaternionf(0, 0, chest_sensor, 0) * imu_chest.inverse()).vec();
+			P_chest = P_neck - (imu_chest * Quaternionf(0, chest_hrzt_offset.coeff(0), chest_sensor, chest_hrzt_offset.coeff(1)) * imu_chest.inverse()).vec();
 			Q_chest = imu_chest;
 			if (P_chest.y() < 0) {
 				P_chest.y() = 0;
 			}
 		}
 
-		P_waist = P_chip + (imu_waist * Quaternionf(0, 0, waist_sensor, 0) * imu_waist.inverse()).vec();
+		P_waist = P_chip + (imu_waist * Quaternionf(0, waist_hrzt_offset.coeff(0), waist_sensor, waist_hrzt_offset.coeff(1)) * imu_waist.inverse()).vec();
 		Q_waist = imu_waist;
 		if (P_waist.y() < 0) {
 			P_waist.y() = 0;
 		}
 
-		P_lthigh = P_lhip + (imu_lthigh * Quaternionf(0, 0, -thigh_sensor, 0) * imu_lthigh.inverse()).vec();
+		P_lthigh = P_lhip + (imu_lthigh * Quaternionf(0, lthigh_hrzt_offset.coeff(0), -thigh_sensor, lthigh_hrzt_offset.coeff(1)) * imu_lthigh.inverse()).vec();
 		Q_lthigh = imu_lthigh;
 		if (P_lthigh.y() < 0) {
 			P_lthigh.y() = 0;
 		}
 
-		P_rthigh = P_rhip + (imu_rthigh * Quaternionf(0, 0, -thigh_sensor, 0) * imu_rthigh.inverse()).vec();
+		P_rthigh = P_rhip + (imu_rthigh * Quaternionf(0, rthigh_hrzt_offset.coeff(0), -thigh_sensor, rthigh_hrzt_offset.coeff(1)) * imu_rthigh.inverse()).vec();
 		Q_rthigh = imu_rthigh;
 		if (P_rthigh.y() < 0) {
 			P_rthigh.y() = 0;
 		}
 
-		P_lshin = P_lknee + (imu_lshin * Quaternionf(0, 0, -shin_sensor, 0) * imu_lshin.inverse()).vec();
+		P_lshin = P_lknee + (imu_lshin * Quaternionf(0, lshin_hrzt_offset.coeff(0), -shin_sensor, lshin_hrzt_offset.coeff(1)) * imu_lshin.inverse()).vec();
 		Q_lshin = imu_lshin;
 		if (P_lshin.y() < 0) {
 			P_lshin.y() = 0;
 		}
 
-		P_rshin = P_rknee + (imu_rshin * Quaternionf(0, 0, -shin_sensor, 0) * imu_rshin.inverse()).vec();
+		P_rshin = P_rknee + (imu_rshin * Quaternionf(0, rshin_hrzt_offset.coeff(0), -shin_sensor, rshin_hrzt_offset.coeff(1)) * imu_rshin.inverse()).vec();
 		Q_rshin = imu_rshin;
 		if (P_rshin.y() < 0) {
 			P_rshin.y() = 0;
@@ -276,4 +295,12 @@ private:
 	float chest_sensor;
 
 	bool chest_enable;
+
+	Vector2f lshin_hrzt_offset;
+	Vector2f rshin_hrzt_offset;
+	Vector2f lthigh_hrzt_offset;
+	Vector2f rthigh_hrzt_offset;
+	Vector2f waist_hrzt_offset;
+	Vector2f chest_hrzt_offset;
+	Vector2f head_hrzt_offset;
 };

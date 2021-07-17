@@ -11,9 +11,8 @@ void ImuUDP::init() {
 
 		socketS = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
-		u_long nonblocking_enabled = true;
-		ioctlsocket(socketS, FIONBIO, &nonblocking_enabled);
-
+		int iTimeout = 100;
+		setsockopt(socketS, SOL_SOCKET, SO_RCVTIMEO, (const char*)&iTimeout, sizeof(iTimeout));
 
 		localT.sin_family = AF_INET;
 		inet_pton(AF_INET, "127.0.0.1", &localT.sin_addr.s_addr);
@@ -94,6 +93,20 @@ void ImuUDP::start()
 						chest_available = true;
 						break;
 					}
+				}
+			}
+
+			else if (bytes_read == 58) {
+				offset_settings = (OffsetSettings*)buff;
+				if (offset_settings->header == (uint8_t)'I' && offset_settings->footer == (uint8_t)'i') {
+					Vector2f lshin_offset(offset_settings->lshin_x, offset_settings->lshin_z);
+					Vector2f rshin_offset(offset_settings->rshin_x, offset_settings->rshin_z);
+					Vector2f lthigh_offset(offset_settings->lthigh_x, offset_settings->lthigh_z);
+					Vector2f rthigh_offset(offset_settings->rthigh_x, offset_settings->rthigh_z);
+					Vector2f waist_offset(offset_settings->waist_x, offset_settings->waist_z);
+					Vector2f chest_offset(offset_settings->chest_x, offset_settings->chest_z);
+					Vector2f head_offset(offset_settings->head_x, offset_settings->head_z);
+					bk->setHorizontalOffset(lshin_offset, rshin_offset, lthigh_offset, rthigh_offset, waist_offset, chest_offset, head_offset);
 				}
 			}
 

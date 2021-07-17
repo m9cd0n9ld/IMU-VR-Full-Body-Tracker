@@ -10,11 +10,18 @@
 	min: 0
 	max: 1.2
 	step: 0.01
+	value: 0
+	
+<SliderPosValue@Slider>:
+	size_hint_x: 0.3
+	min: -0.3
+	max: 0.3
+	step: 0.01
 
 TabbedPanel:
 	padding: 5
 	do_default_tab: False
-	tab_width: (self.size[0] - self.padding[0] * 4)/4
+	tab_width: (self.size[0] - self.padding[0] * 5)/5
 
     TabbedPanelItem:
 		text: 'Devices'
@@ -95,27 +102,28 @@ TabbedPanel:
 			spacing: 5
             Label:
 				size_hint_y: 2/23
-                text: '[b]Sensor XYZ rotation to driver frame in degree[/b]'
+                text: '[b]Tracker frame intrinsic XYZ rotation to \ndriver frame (X: right, Y: up, Z: back) in degree[/b]'
 				markup: True
 				font_size: '25sp'
+				halign: 'center'
 			BoxLayout:
 				size_hint_y: 1/23
 				spacing: 10
 				Label:
 					size_hint_x: 0.25
-					text: '[b]Body parts[/b]'
+					text: '[b]Trackers[/b]'
 					markup: True
 				Label:
 					size_hint_x: 0.25
-					text: '[b]X (right)[/b]'
+					text: '[b]X[/b]'
 					markup: True
 				Label:
 					size_hint_x: 0.25
-					text: '[b]Y (up)[/b]'
+					text: '[b]Y[/b]'
 					markup: True
 				Label:
 					size_hint_x: 0.25
-					text: '[b]Z (back)[/b]'
+					text: '[b]Z[/b]'
 					markup: True
 			BoxLayout:
 				size_hint_y: 1/23
@@ -225,7 +233,7 @@ TabbedPanel:
 				size_hint_y: 1/23
 				Label:
 					size_hint_x: 0.5
-					text: '[b]Shin length (Knee to foot)[/b]'
+					text: '[b]Shin vertical length (Knee to foot)[/b]'
 					markup: True
 				SliderValue:
 					id: shin_h
@@ -237,7 +245,7 @@ TabbedPanel:
 				size_hint_y: 1/23
 				Label:
 					size_hint_x: 0.5
-					text: '[b]Thigh length (Hip to knee)[/b]'
+					text: '[b]Thigh vertical length (Hip to knee)[/b]'
 					markup: True
 				SliderValue:
 					id: thigh_h
@@ -249,7 +257,7 @@ TabbedPanel:
 				size_hint_y: 1/23
 				Label:
 					size_hint_x: 0.5
-					text: '[b]Back length (Hip to neck)[/b]'
+					text: '[b]Back vertical length (Hip to neck)[/b]'
 					markup: True
 				SliderValue:
 					id: back_h
@@ -261,7 +269,7 @@ TabbedPanel:
 				size_hint_y: 1/23
 				Label:
 					size_hint_x: 0.5
-					text: '[b]Head length (Neck to HMD / eye level)[/b]'
+					text: '[b]Head vertical length (Neck to headset / eye level)[/b]'
 					markup: True
 				SliderValue:
 					id: head_h
@@ -273,7 +281,7 @@ TabbedPanel:
 				size_hint_y: 1/23
 				Label:
 					size_hint_x: 0.5
-					text: '[b]Hip width[/b]'
+					text: '[b]Hip horizontal width[/b]'
 					markup: True
 				SliderValue:
 					id: hip_width_h
@@ -285,11 +293,10 @@ TabbedPanel:
 				size_hint_y: 1/23
 				Label:
 					size_hint_x: 0.5
-					text: '[b]Shin sensor position (Knee to sensor)[/b]'
+					text: '[b]Shin tracker vertical position (Knee to tracker)[/b]'
 					markup: True
 				SliderValue:
 					id: shin_sensor_h
-					max: shin_h.value
 					value: 0.2
 				Label:
 					size_hint_x: 0.1
@@ -298,11 +305,10 @@ TabbedPanel:
 				size_hint_y: 1/23
 				Label:
 					size_hint_x: 0.5
-					text: '[b]Thigh sensor position (Hip to sensor)[/b]'
+					text: '[b]Thigh tracker vertical position (Hip to tracker)[/b]'
 					markup: True
 				SliderValue:
 					id: thigh_sensor_h
-					max: thigh_h.value
 					value: 0.2
 				Label:
 					size_hint_x: 0.1
@@ -311,11 +317,10 @@ TabbedPanel:
 				size_hint_y: 1/23
 				Label:
 					size_hint_x: 0.5
-					text: '[b]Waist sensor position (Hip to sensor)[/b]'
+					text: '[b]Waist tracker vertical position (Hip to tracker)[/b]'
 					markup: True
 				SliderValue:
 					id: waist_sensor_h
-					max: back_h.value if not chest_en_check.active else back_h.value/2
 					value: 0.2
 				Label:
 					size_hint_x: 0.1
@@ -324,12 +329,11 @@ TabbedPanel:
 				size_hint_y: 1/23
 				Label:
 					size_hint_x: 0.5
-					text: '[b]Chest sensor position (Neck to sensor)[/b]'
+					text: '[b]Chest tracker vertical position (Neck to tracker)[/b]'
 					markup: True
 				SliderValue:
 					id: chest_sensor_h
 					disabled: not chest_en_check.active
-					max: back_h.value/2
 					value: 0.2
 				Label:
 					size_hint_x: 0.1
@@ -343,12 +347,153 @@ TabbedPanel:
 				size_hint_y: 1/23
 				Label:
 					size_hint_x: 0.7
-					text: '[b]Enable chest sensor for improved kinematics[/b]'
+					text: '[b]Enable chest tracker for improved kinematics[/b]'
 					markup: True
 				Switch:
 					id: chest_en_check
 					size_hint_x: 0.3
 					active: False
+					
+	TabbedPanelItem:
+        text: 'Offset settings'
+        BoxLayout:
+			orientation: 'vertical'
+			spacing: 5
+            Label:
+				size_hint_y: 2/23
+                text: '[b]Tracker horizontal offset position settings in meter[/b]'
+				markup: True
+				font_size: '25sp'
+			BoxLayout:
+				size_hint_y: 1/23
+				Label:
+					size_hint_x: 0.2
+					text: '[b]Trackers[/b]'
+					markup: True
+				Label:
+					size_hint_x: 0.4
+					text: '[b]X (Right positive)[/b]'
+					markup: True
+				Label:
+					size_hint_x: 0.4
+					text: '[b]Z (Back positive)[/b]'
+					markup: True
+			BoxLayout:
+				size_hint_y: 1/23
+				Label:
+					size_hint_x: 0.2
+					text: '[b]Left shin[/b]'
+					markup: True
+				SliderPosValue:
+					id: lshin_pos_x
+				Label:
+					size_hint_x: 0.1
+					text: '{:.2f}'.format(lshin_pos_x.value)
+				SliderPosValue:
+					id: lshin_pos_z
+				Label:
+					size_hint_x: 0.1
+					text: '{:.2f}'.format(lshin_pos_z.value)
+			BoxLayout:
+				size_hint_y: 1/23
+				Label:
+					size_hint_x: 0.2
+					text: '[b]Right shin[/b]'
+					markup: True
+				SliderPosValue:
+					id: rshin_pos_x
+				Label:
+					size_hint_x: 0.1
+					text: '{:.2f}'.format(rshin_pos_x.value)
+				SliderPosValue:
+					id: rshin_pos_z
+				Label:
+					size_hint_x: 0.1
+					text: '{:.2f}'.format(rshin_pos_z.value)
+			BoxLayout:
+				size_hint_y: 1/23
+				Label:
+					size_hint_x: 0.2
+					text: '[b]Left thigh[/b]'
+					markup: True
+				SliderPosValue:
+					id: lthigh_pos_x
+				Label:
+					size_hint_x: 0.1
+					text: '{:.2f}'.format(lthigh_pos_x.value)
+				SliderPosValue:
+					id: lthigh_pos_z
+				Label:
+					size_hint_x: 0.1
+					text: '{:.2f}'.format(lthigh_pos_z.value)
+			BoxLayout:
+				size_hint_y: 1/23
+				Label:
+					size_hint_x: 0.2
+					text: '[b]Right thigh[/b]'
+					markup: True
+				SliderPosValue:
+					id: rthigh_pos_x
+				Label:
+					size_hint_x: 0.1
+					text: '{:.2f}'.format(rthigh_pos_x.value)
+				SliderPosValue:
+					id: rthigh_pos_z
+				Label:
+					size_hint_x: 0.1
+					text: '{:.2f}'.format(rthigh_pos_z.value)
+			BoxLayout:
+				size_hint_y: 1/23
+				Label:
+					size_hint_x: 0.2
+					text: '[b]Waist[/b]'
+					markup: True
+				SliderPosValue:
+					id: waist_pos_x
+				Label:
+					size_hint_x: 0.1
+					text: '{:.2f}'.format(waist_pos_x.value)
+				SliderPosValue:
+					id: waist_pos_z
+				Label:
+					size_hint_x: 0.1
+					text: '{:.2f}'.format(waist_pos_z.value)
+			BoxLayout:
+				size_hint_y: 1/23
+				Label:
+					size_hint_x: 0.2
+					text: '[b]Chest[/b]'
+					markup: True
+				SliderPosValue:
+					id: chest_pos_x
+					disabled: not chest_en_check.active
+				Label:
+					size_hint_x: 0.1
+					text: '{:.2f}'.format(chest_pos_x.value)
+				SliderPosValue:
+					id: chest_pos_z
+					disabled: not chest_en_check.active
+				Label:
+					size_hint_x: 0.1
+					text: '{:.2f}'.format(chest_pos_z.value)
+			BoxLayout:
+				size_hint_y: 1/23
+				Label:
+					size_hint_x: 0.2
+					text: '[b]Headset[/b]'
+					markup: True
+				SliderPosValue:
+					id: head_pos_x
+				Label:
+					size_hint_x: 0.1
+					text: '{:.2f}'.format(head_pos_x.value)
+				SliderPosValue:
+					id: head_pos_z
+				Label:
+					size_hint_x: 0.1
+					text: '{:.2f}'.format(head_pos_z.value)
+			BoxLayout:
+				size_hint_y: 13/23		
 
 	TabbedPanelItem:
 		text: 'WiFi Settings'

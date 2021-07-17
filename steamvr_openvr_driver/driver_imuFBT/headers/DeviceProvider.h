@@ -23,10 +23,16 @@ private:
 	bool kinematicsRun = false;
 	std::thread* kinematicsThread = NULL;
 
+	ImuUDP* udpThread = nullptr;
+
 	TrackerDriver* m_pTracker1 = nullptr;
 	TrackerDriver* m_pTracker2 = nullptr;
 	TrackerDriver* m_pTracker3 = nullptr;
 	TrackerDriver* m_pTracker4 = nullptr;
 	TrackerDriver* m_pTracker5 = nullptr;
 	TrackerDriver* m_pTracker6 = nullptr;
+
+	std::chrono::high_resolution_clock::time_point t_hmd_last = std::chrono::high_resolution_clock::now();
+	std::chrono::high_resolution_clock::time_point t_end = std::chrono::high_resolution_clock::now();
+	double elapsed_time_ms;
 };

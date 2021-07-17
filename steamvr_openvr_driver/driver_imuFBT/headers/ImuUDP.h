@@ -65,6 +65,33 @@ private:
 		uint8_t footer;
 	});
 
+	PACK(struct OffsetSettings {
+		uint8_t header;
+
+		float lshin_x;
+		float lshin_z;
+
+		float rshin_x;
+		float rshin_z;
+
+		float lthigh_x;
+		float lthigh_z;
+
+		float rthigh_x;
+		float rthigh_z;
+
+		float waist_x;
+		float waist_z;
+
+		float chest_x;
+		float chest_z;
+
+		float head_x;
+		float head_z;
+
+		uint8_t footer;
+	});
+
 	PACK(struct Calibrate {
 		uint8_t header;
 		uint8_t calib;
@@ -80,6 +107,7 @@ private:
 
 	Payload* payload;
 	PayloadSettings* payload_settings;
+	OffsetSettings* offset_settings;
 	Calibrate* calibrate;
 	Ping ping;
 

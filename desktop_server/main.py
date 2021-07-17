@@ -1,10 +1,10 @@
 from kivy.config import Config
 Config.set('graphics', 'maxfps', '1000')
 Config.set('input', 'mouse', 'mouse,disable_multitouch')
-Config.set('graphics', 'width', '600')
-Config.set('graphics', 'height', '750')
-Config.set('graphics', 'minimum_width', '600')
-Config.set('graphics', 'minimum_height', '750')
+Config.set('graphics', 'width', '700')
+Config.set('graphics', 'height', '800')
+Config.set('graphics', 'minimum_width', '700')
+Config.set('graphics', 'minimum_height', '800')
 Config.set('kivy','window_icon','icon.ico')
 from kivy.app import App
 from kivy.lang import Builder
@@ -24,7 +24,7 @@ import binascii
 import time
 import math
 
-VERSION = "0.2"
+VERSION = "0.3"
 
 ROLE = ['No role',
         'Left leg',
@@ -301,6 +301,30 @@ class ImuFbtServer(App):
                          chest_sensor_h)
         struct.pack_into('<?', payload, 108, chest_enable)
         self.sock_listen.sendto(self.wrap_payload(payload), ('127.0.0.1', self.driverPort))
+        
+        lshin_x = float(self.root.ids.lshin_pos_x.value)
+        lshin_z = float(self.root.ids.lshin_pos_z.value)
+        rshin_x = float(self.root.ids.rshin_pos_x.value)
+        rshin_z = float(self.root.ids.rshin_pos_z.value)
+        lthigh_x = float(self.root.ids.lthigh_pos_x.value)
+        lthigh_z = float(self.root.ids.lthigh_pos_z.value)
+        rthigh_x = float(self.root.ids.rthigh_pos_x.value)
+        rthigh_z = float(self.root.ids.rthigh_pos_z.value)
+        waist_x = float(self.root.ids.waist_pos_x.value)
+        waist_z = float(self.root.ids.waist_pos_z.value)
+        chest_x = float(self.root.ids.chest_pos_x.value)
+        chest_z = float(self.root.ids.chest_pos_z.value)
+        head_x = float(self.root.ids.head_pos_x.value)
+        head_z = float(self.root.ids.head_pos_z.value)
+        payload = bytearray(56)
+        struct.pack_into('<2f', payload, 0, lshin_x, lshin_z)
+        struct.pack_into('<2f', payload, 8, rshin_x, rshin_z)
+        struct.pack_into('<2f', payload, 16, lthigh_x, lthigh_z)
+        struct.pack_into('<2f', payload, 24, rthigh_x, rthigh_z)
+        struct.pack_into('<2f', payload, 32, waist_x, waist_z)
+        struct.pack_into('<2f', payload, 40, chest_x, chest_z)
+        struct.pack_into('<2f', payload, 48, head_x, head_z)
+        self.sock_listen.sendto(self.wrap_payload(payload), ('127.0.0.1', self.driverPort))
 
     def on_start(self):        
         self.settings_bak = os.path.join(os.path.expanduser('~'),
@@ -344,6 +368,21 @@ class ImuFbtServer(App):
             self.root.ids.waist_sensor_h.value = float(config.get('parameter', 'waist_sensor_h'))
             self.root.ids.chest_sensor_h.value = float(config.get('parameter', 'chest_sensor_h'))
             self.root.ids.chest_en_check.active = int(config.get('parameter', 'chest_en_check'))
+            
+            self.root.ids.lshin_pos_x.value = float(config.get('offset', 'lshin_pos_x'))
+            self.root.ids.lshin_pos_z.value = float(config.get('offset', 'lshin_pos_z'))
+            self.root.ids.rshin_pos_x.value = float(config.get('offset', 'rshin_pos_x'))
+            self.root.ids.rshin_pos_z.value = float(config.get('offset', 'rshin_pos_z'))
+            self.root.ids.lthigh_pos_x.value = float(config.get('offset', 'lthigh_pos_x'))
+            self.root.ids.lthigh_pos_z.value = float(config.get('offset', 'lthigh_pos_z'))
+            self.root.ids.rthigh_pos_x.value = float(config.get('offset', 'rthigh_pos_x'))
+            self.root.ids.rthigh_pos_z.value = float(config.get('offset', 'rthigh_pos_z'))
+            self.root.ids.waist_pos_x.value = float(config.get('offset', 'waist_pos_x'))
+            self.root.ids.waist_pos_z.value = float(config.get('offset', 'waist_pos_z'))
+            self.root.ids.chest_pos_x.value = float(config.get('offset', 'chest_pos_x'))
+            self.root.ids.chest_pos_z.value = float(config.get('offset', 'chest_pos_z'))
+            self.root.ids.head_pos_x.value = float(config.get('offset', 'head_pos_x'))
+            self.root.ids.head_pos_z.value = float(config.get('offset', 'head_pos_z'))
 
             for k in config.items('devices'):
                 self.devices_list[k[0]] = k[1]
@@ -405,11 +444,27 @@ class ImuFbtServer(App):
         config.set('parameter', 'chest_sensor_h', str(self.root.ids.chest_sensor_h.value))
         config.set('parameter', 'chest_en_check', str(int(self.root.ids.chest_en_check.active)))
 
+        config.add_section('offset')
+        config.set('offset', 'lshin_pos_x', str(self.root.ids.lshin_pos_x.value))
+        config.set('offset', 'lshin_pos_z', str(self.root.ids.lshin_pos_z.value))
+        config.set('offset', 'rshin_pos_x', str(self.root.ids.rshin_pos_x.value))
+        config.set('offset', 'rshin_pos_z', str(self.root.ids.rshin_pos_z.value))
+        config.set('offset', 'lthigh_pos_x', str(self.root.ids.lthigh_pos_x.value))
+        config.set('offset', 'lthigh_pos_z', str(self.root.ids.lthigh_pos_z.value))
+        config.set('offset', 'rthigh_pos_x', str(self.root.ids.rthigh_pos_x.value))
+        config.set('offset', 'rthigh_pos_z', str(self.root.ids.rthigh_pos_z.value))
+        config.set('offset', 'waist_pos_x', str(self.root.ids.waist_pos_x.value))
+        config.set('offset', 'waist_pos_z', str(self.root.ids.waist_pos_z.value))
+        config.set('offset', 'chest_pos_x', str(self.root.ids.chest_pos_x.value))
+        config.set('offset', 'chest_pos_z', str(self.root.ids.chest_pos_z.value))
+        config.set('offset', 'head_pos_x', str(self.root.ids.head_pos_x.value))
+        config.set('offset', 'head_pos_z', str(self.root.ids.head_pos_z.value))
+
         config.add_section('devices')
         for k, v in self.devices_list.items():
             config.set('devices', k, v)
 
-        sections = ['lshin', 'rshin', 'lthigh', 'rthigh', 'waist', 'chest', 'parameter']
+        sections = ['lshin', 'rshin', 'lthigh', 'rthigh', 'waist', 'chest']
         for section in sections:
             for item in config.items(section):
                 if item[1] == '':

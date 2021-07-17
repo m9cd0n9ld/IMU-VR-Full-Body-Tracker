@@ -14,7 +14,7 @@
 #define WAIST 5
 #define CHEST 6
 
-#define DRIVER_VERSION 0.2
+#define DRIVER_VERSION 0.3
 
 extern bool SocketActivated;
 

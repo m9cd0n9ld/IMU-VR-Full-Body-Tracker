@@ -25,8 +25,6 @@ BodyKinematics* bk = new BodyKinematics();
 Matrix3f mat_hmd = Matrix3f::Identity(3, 3);
 Vector3f p_hmd(0, 0, 0);
 
-ImuUDP* udpThread = new ImuUDP();
-
 EVRInitError DeviceProvider::Init(IVRDriverContext* pDriverContext)
 {
 	VR_INIT_SERVER_DRIVER_CONTEXT(pDriverContext);
@@ -70,6 +68,7 @@ EVRInitError DeviceProvider::Init(IVRDriverContext* pDriverContext)
 	// Transform from IMU ENU frame (X right, Y front, Z up) to driver frame (X right, Y up, Z back)
 	bk->setDriverTransform(bk->euXYZ_to_quat(90.0 * PI / 180.0, 0, 0)); // Rotate X 90 deg
 
+	udpThread = new ImuUDP();
 	udpThread->init();
 
 	kinematicsRun = true;
@@ -165,11 +164,17 @@ void DeviceProvider::forwardKinematics() {
 				p_hmd(k) = hmdMatrix.m[k][3];
 			}
 			hmd_available = true;
-		}
-		else {
-			hmd_available = false;
+			t_hmd_last = std::chrono::high_resolution_clock::now();
 		}
 
 		bk->update(imu_lshin, imu_rshin, imu_lthigh, imu_rthigh, imu_waist, imu_chest, Quaternionf(mat_hmd), p_hmd);
+
+		t_end = std::chrono::high_resolution_clock::now();
+		elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_hmd_last).count();
+		if (elapsed_time_ms >= 1000) {
+			hmd_available = false;
+		}
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	}
 }
