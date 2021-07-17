@@ -17,10 +17,11 @@
 ## Usage
  1. Extract esp32.sketch.zip, edit the settings (pin settings, etc.) in esp32_settings.h file.  
  2. Upload the sketch to ESP32 microcontroller with Arduino IDE (SparkFun_BNO080_Arduino_Library Arduino library is required).  
- 3. Extract desktop.server.zip and run imufbtserver.exe (might trigger antivirus false positive, typical problem for unsigned exe files).  
- 4. Set the sensor frame to driver frame (X right, Y up, Z back) XYZ intrinsic rotation based on the mounting orientation, and body parts measurement and sensor position settings in **Settings** tab.  
- 5. Enable chest sensor if applicable.  
+ 3. Extract desktop.server.zip and run imufbtserver.exe (might trigger antivirus false positive, known problem for unsigned PyInstaller exe files).  
+ 4. Set the tracker sensor frame to driver frame (X right, Y up, Z back) XYZ intrinsic rotation based on the mounting orientation, and body segment length and sensor position settings in **Settings** and **Offset settings** tab.  
+ 5. Enable chest tracker if applicable.  
  ![Settings](media/desktop_app_settings.png)  
+ ![Offset settings](media/desktop_app_offset_settings.png)  
  6. Plug in USB cable to ESP32 and set the WiFi credential in **WiFi Settings** tab.  
  ![WiFi settings](media/desktop_app_wifi_settings.png)  
  7. Once WiFi credential is configured, unplug the USB cable and power cycle the ESP32 to establish WiFi connection.  
