@@ -3,8 +3,14 @@
 		"/devices/imuFBT/lfoot": "TrackerRole_LeftFoot",
 		"/devices/imuFBT/rfoot": "TrackerRole_RightFoot",
 		"/devices/imuFBT/waist": "TrackerRole_Waist",
-		"/devices/imuFBT/lknee": "TrackerRole_LeftKnee",
-		"/devices/imuFBT/rknee": "TrackerRole_RightKnee",
-		"/devices/imuFBT/chest": "TrackerRole_Chest"
+		"/devices/imuFBT/lshin": "TrackerRole_None",
+		"/devices/imuFBT/rshin": "TrackerRole_None",
+		"/devices/imuFBT/lthigh": "TrackerRole_LeftKnee",
+		"/devices/imuFBT/rthigh": "TrackerRole_RightKnee",
+		"/devices/imuFBT/chest": "TrackerRole_Chest",
+		"/devices/imuFBT/lshoulder": "TrackerRole_LeftShoulder",
+		"/devices/imuFBT/rshoulder": "TrackerRole_RightShoulder",
+		"/devices/imuFBT/lupperarm": "TrackerRole_LeftElbow",
+		"/devices/imuFBT/rupperarm": "TrackerRole_RightElbow"
 	}
 }

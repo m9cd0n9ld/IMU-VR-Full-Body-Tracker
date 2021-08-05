@@ -25,6 +25,7 @@ AsyncUDP Audp;
 struct __attribute__((packed)) PingBroad {
   uint8_t header = (uint8_t)'I';
   uint8_t id = 77;
+  bool extended = false;
   uint8_t footer = (uint8_t)'i';
 } pingbroad;
 
@@ -38,6 +39,7 @@ struct __attribute__((packed)) Ping {
   uint8_t e;
   uint8_t f;
   float batt = 0;
+  bool extended = false;
   uint8_t footer = (uint8_t)'i';
 } ping;
 
@@ -46,6 +48,7 @@ struct __attribute__((packed)) Ack {
   uint8_t reply;
   uint8_t id;
   uint16_t driverPort;
+  bool extended;
   uint8_t footer;
 } ack;
 
@@ -66,6 +69,11 @@ uint32_t recv_watchdog;
 uint32_t t_blink;
 uint8_t led_state = 0;
 BNO080 myIMU;
+BNO080 myIMU2;
+bool extended_imu_found = false;
+
+uint8_t main_id = 0;
+uint8_t extended_id = 0;
 
 float battery_voltage() {
   return get_battery_voltage(analogReadMilliVolts(batt_monitor_pin));
@@ -122,13 +130,23 @@ void setup(){
   digitalWrite(reset_pin, HIGH);
   reset_imu();
   Wire.begin();
-  while (!myIMU.begin()) {
+  while (!myIMU.begin(i2c_main_addr)) {
     reset_imu();
     delay(500);
   }
-  Wire.setClock(100000);
+  Wire.setClock(400000);
   myIMU.enableARVRStabilizedRotationVector(10);
-  DEBUG_PRINT.println("AR VR Stabilized Rotation Vector enabled");
+  DEBUG_PRINT.println("AR VR Stabilized Rotation Vector enabled on main IMU");
+
+  if (myIMU2.begin(i2c_extend_addr)) {
+    myIMU2.enableARVRStabilizedRotationVector(10);
+    extended_imu_found = true;
+    DEBUG_PRINT.println("AR VR Stabilized Rotation Vector enabled on extended IMU");
+  }
+  else {
+    extended_imu_found = false;
+    DEBUG_PRINT.println("Extended IMU not found");
+  }
 
   pinMode(led_pin, OUTPUT);
   
@@ -167,15 +185,20 @@ void loop(){
     if (udp.read((uint8_t*)&ack, sizeof(ack)) > 0) {
       if (ack.reply == 200 && ack.header == (uint8_t)'I' && ack.footer == (uint8_t)'i') {
         udpAddress = udp.remoteIP();
-        payload.id = ack.id;
-        ping.id = ack.id;
+        if (ack.extended) {
+          extended_id = ack.id;
+        }
+        else {
+          main_id = ack.id;
+        }
         driverPort = ack.driverPort;
         recv_watchdog = millis();
       }
     }
     
     if (udpAddress != IPAddress(0, 0, 0, 0)) {
-      if (myIMU.dataAvailable() && payload.id != 0  && driverPort != 0) {
+      if (myIMU.dataAvailable() && main_id != 0  && driverPort != 0) {
+        payload.id = main_id;
         payload.x = myIMU.getQuatI();
         payload.y = myIMU.getQuatJ();
         payload.z = myIMU.getQuatK();
@@ -184,6 +207,30 @@ void loop(){
         udp.beginPacket(udpAddress,driverPort);
         udp.write((uint8_t*)&payload, sizeof(payload));
         udp.endPacket();
+        DEBUG_PRINT.print("main,");
+        DEBUG_PRINT.print(payload.id);
+        DEBUG_PRINT.print(",");
+        DEBUG_PRINT.print(payload.x);
+        DEBUG_PRINT.print(",");
+        DEBUG_PRINT.print(payload.y);
+        DEBUG_PRINT.print(",");
+        DEBUG_PRINT.print(payload.z);
+        DEBUG_PRINT.print(",");
+        DEBUG_PRINT.print(payload.w);
+        DEBUG_PRINT.println();
+      }
+
+      if (extended_imu_found && myIMU2.dataAvailable() && extended_id != 0  && driverPort != 0) {
+        payload.id = extended_id;
+        payload.x = myIMU2.getQuatI();
+        payload.y = myIMU2.getQuatJ();
+        payload.z = myIMU2.getQuatK();
+        payload.w = myIMU2.getQuatReal();
+
+        udp.beginPacket(udpAddress,driverPort);
+        udp.write((uint8_t*)&payload, sizeof(payload));
+        udp.endPacket();
+        DEBUG_PRINT.print("extended,");
         DEBUG_PRINT.print(payload.id);
         DEBUG_PRINT.print(",");
         DEBUG_PRINT.print(payload.x);
@@ -197,10 +244,20 @@ void loop(){
       }
 
       if (millis() - start_tx_time >= 1000) {
+        ping.id = main_id;
+        ping.extended = false;
         ping.batt = battery_voltage();
         udp.beginPacket(udpAddress,serverPort);
         udp.write((uint8_t*)&ping, sizeof(ping));
         udp.endPacket();
+        if (extended_imu_found) {
+           ping.id = extended_id;
+           ping.extended = true;
+           ping.batt = battery_voltage();
+           udp.beginPacket(udpAddress,serverPort);
+           udp.write((uint8_t*)&ping, sizeof(ping));
+           udp.endPacket();
+        }
         DEBUG_PRINT.println(ping.batt);
         start_tx_time = millis();
       }
@@ -209,7 +266,12 @@ void loop(){
     
     else {
       if (millis() - start_broadcast_time >= broadcast_delay) {
+        pingbroad.extended = false;
         Audp.broadcastTo((uint8_t*)&pingbroad, sizeof(pingbroad), serverPort);
+        if (extended_imu_found) {
+          pingbroad.extended = true;
+          Audp.broadcastTo((uint8_t*)&pingbroad, sizeof(pingbroad), serverPort);
+        }
         DEBUG_PRINT.println("Pinged");
         start_broadcast_time = millis();
         broadcast_delay = random(3000, 5001);

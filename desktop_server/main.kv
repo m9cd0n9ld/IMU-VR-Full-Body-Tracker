@@ -1,552 +1,704 @@
-<InputText@TextInput>:
-	size_hint_x: 0.25
+<TransformInput@BoxLayout>:
+    desc: ''
+    disable: False
+    tx: tx
+    ty: ty
+    tz: tz
+    spacing: 5
+    size_hint_y: None
+    height: self.minimum_height * 1.5
+
+    DefaultLabel:
+        size_hint_x: 0.4
+        text: root.desc
+
+    DefaultInput:
+        id: tx
+        size_hint_x: 0.2
+        disabled: root.disable
+
+    DefaultInput:
+        id: ty
+        size_hint_x: 0.2
+        disabled: root.disable
+
+    DefaultInput:
+        id: tz
+        size_hint_x: 0.2
+        disabled: root.disable
+
+<SegmentSlider@BoxLayout>:
+    desc: ''
+    disable: False
+    val: 0
+    slider: slider
+    spacing: 5
+    size_hint_y: None
+    height: self.minimum_height * 1.5
+
+    DefaultLabel:
+        size_hint_x: 0.45
+        text: root.desc
+
+    DefaultSlider:
+        id: slider
+        size_hint_x: 0.4
+        value: root.val
+        disabled: root.disable
+
+    DefaultLabel:
+        size_hint_x: 0.05
+        text: '{:.2f}'.format(slider.value)
+
+    Button:
+        size_hint_x: 0.05
+        text: '-'
+        disabled: root.disable
+        on_release: 
+            min = slider.min
+            max = slider.max
+            step = slider.step
+            value = round(slider.value, 2)
+            if value > min and value <= max: slider.value -= step
+
+    Button:
+        size_hint_x: 0.05
+        text: '+'
+        disabled: root.disable
+        on_release: 
+            min = slider.min
+            max = slider.max
+            step = slider.step
+            value = round(slider.value, 2)
+            if value >= min and value < max: slider.value += step
+
+<OffsetSlider@BoxLayout>:
+    desc: ''
+    disable: False
+    slider1: slider1
+    slider2: slider2
+    spacing: 5
+    size_hint_y: None
+    height: self.minimum_height * 1.5
+
+    DefaultLabel:
+        size_hint_x: 0.2
+        text: root.desc
+
+    DefaultSlider:
+        id: slider1
+        size_hint_x: 0.25
+        min: -0.3
+        max: 0.3
+        disabled: root.disable
+
+    DefaultLabel:
+        size_hint_x: 0.05
+        text: '{:.2f}'.format(slider1.value)
+
+    Button:
+        size_hint_x: 0.05
+        text: '-'
+        disabled: root.disable
+        on_release: 
+            min = slider1.min
+            max = slider1.max
+            step = slider1.step
+            value = round(slider1.value, 2)
+            if value > min and value <= max: slider1.value -= step
+
+    Button:
+        size_hint_x: 0.05
+        text: '+'
+        disabled: root.disable
+        on_release: 
+            min = slider1.min
+            max = slider1.max
+            step = slider1.step
+            value = round(slider1.value, 2)
+            if value >= min and value < max: slider1.value += step
+
+    DefaultSlider:
+        id: slider2
+        size_hint_x: 0.25
+        min: -0.3
+        max: 0.3
+        disabled: root.disable
+
+    DefaultLabel:
+        size_hint_x: 0.05
+        text: '{:.2f}'.format(slider2.value)
+
+    Button:
+        size_hint_x: 0.05
+        text: '-'
+        disabled: root.disable
+        on_release: 
+            min = slider2.min
+            max = slider2.max
+            step = slider2.step
+            value = round(slider2.value, 2)
+            if value > min and value <= max: slider2.value -= step
+
+    Button:
+        size_hint_x: 0.05
+        text: '+'
+        disabled: root.disable
+        on_release: 
+            min = slider2.min
+            max = slider2.max
+            step = slider2.step
+            value = round(slider2.value, 2)
+            if value >= min and value < max: slider2.value += step
+
+<OnOffSwitch@BoxLayout>:
+    desc: ''
+    switch: switch
+    spacing: 5
+    size_hint_y: None
+    height: self.minimum_height * 1.5
+
+    DefaultLabel:
+        size_hint_x: 0.8
+        text: root.desc
+
+    Switch:
+        id: switch
+        size_hint_x: 0.2
+        active: False
+
+<DefaultScroll@ScrollView>:
+    effect_cls: 'ScrollEffect'
+    do_scroll_x: False
+    do_scroll_y: True
+    bar_inactive_color: self.bar_color
+    bar_width: 20
+    scroll_type: ['bars', 'content']
+	scroll_timeout: 100
+	scroll_distance: 10
+
+<DefaultVBox@BoxLayout>:
+    orientation: 'vertical'
+    spacing: 5
+    size_hint_y: None
+    height: self.minimum_height
+
+<DefaultHBox@BoxLayout>:
+    orientation: 'horizontal'
+    spacing: 5
+    size_hint_y: None
+    height: self.minimum_height
+
+<DefaultLabel@Label>:
+    markup: True
+    halign: 'center'
+    font_size: '15sp'
+    size_hint_y: None
+    height: self.texture_size[1]
+    pos_hint: {'center_y': 0.5}
+
+<DefaultInput@TextInput>:
+    text: '0'
+    font_size: '15sp'
 	multiline: False
 	write_tab: False
 	input_filter: "float"
-	on_focus: app.textinput_focus(args)
-	
-<SliderValue@Slider>:
-	size_hint_x: 0.4
-	min: 0
+    on_focus: app.textinput_focus(args)
+
+<DefaultSlider@Slider>:
+    min: 0
 	max: 1.2
 	step: 0.01
 	value: 0
-	
-<SliderPosValue@Slider>:
-	size_hint_x: 0.3
-	min: -0.3
-	max: 0.3
-	step: 0.01
 
 TabbedPanel:
-	padding: 5
 	do_default_tab: False
-	tab_width: (self.size[0] - self.padding[0] * 5)/5
+    tab_width: (self.size[0] - self.padding[0] * 5)/5
 
     TabbedPanelItem:
-		text: 'Devices'
-        BoxLayout:
-			orientation: 'vertical'
-			spacing: 5
-			BoxLayout:
-				id: boxlayout_ref
-				size_hint_y: 0.1
-				spacing: 5
-				Label:
-					size_hint_x: 0.2
-					text: '[b]MAC[/b]'
-					markup: True
-				Label:
-					size_hint_x: 0.2
-					text: '[b]IP[/b]'
-					markup: True
-				Label:
-					size_hint_x: 0.2
-					text: '[b]Battery (V)[/b]'
-					markup: True
-				Label:
-					size_hint_x: 0.2
-					text: '[b]Battery (%)[/b]'
-					markup: True
-				Label:
-					size_hint_x: 0.2
-					text: '[b]Role[/b]'
-					markup: True
-			StackLayout:
-				id: stack_list
-				orientation: 'tb-lr'
-				size_hint_y: 0.8
-				spacing: 5
-			BoxLayout:
-				size_hint_y: 0.1
-				spacing: 5
-				Label:
-					size_hint_x: 0.25
-				Button:
-					size_hint_x: 0.5
-					text: 'Caibrate'
-					on_release: app.calibrate_imu()
-				Label:
-					size_hint_x: 0.25
+        text: 'Devices'
 
-	TabbedPanelItem:
-		text: 'Role assignment'
         BoxLayout:
-			orientation: 'vertical'
-			spacing: 5
-			BoxLayout:
-				size_hint_y: 0.1
-				spacing: 5
-				Label:
-					size_hint_x: 0.25
-					text: '[b]MAC[/b]'
+            orientation: 'vertical'
+            spacing: 5
+
+            BoxLayout:
+                id: layout_ref
+                size_hint_y: 0.1
+				padding: [0, 0, 20, 0]
+
+                Label:
+                    size_hint_x: 0.25
+                    text: '[b]MAC[/b]'
 					markup: True
-				Label:
-					size_hint_x: 0.25
-					text: '[b]IP[/b]'
+
+                Label:
+                    size_hint_x: 0.25
+                    text: '[b]IP[/b]'
 					markup: True
-				Label:
-					size_hint_x: 0.5
-					text: '[b]Role[/b]'
+
+                Label:
+                    size_hint_x: 0.15
+                    text: '[b]Battery (V)[/b]'
 					markup: True
-			StackLayout:
-				id: stack_role
-				orientation: 'tb-lr'
-				size_hint_y: 0.9
-				spacing: 5
+
+                Label:
+                    size_hint_x: 0.15
+                    text: '[b]Battery (%)[/b]'
+					markup: True
+
+                Label:
+                    size_hint_x: 0.2
+                    text: '[b]Role[/b]'
+					markup: True
+
+            DefaultScroll:
+				size_hint_y: 0.8
 				
+				BoxLayout:
+					id: stack_list
+					orientation: 'vertical'
+					size_hint_y: None
+					height: self.minimum_height
+					padding: [0, 0, 20, 0]
+					
+            BoxLayout:
+                size_hint_y: 0.1
+
+                DefaultLabel:
+                    size_hint_x: 0.4
+
+                Button:
+                    id: calibrate_imu_button
+                    size_hint_x: 0.2
+                    text: 'Calibrate'
+                    on_release: app.calibrate_imu()
+
+                DefaultLabel:
+                    size_hint_x: 0.4
+
+    TabbedPanelItem:
+        text: 'Role assignment'
+
+        BoxLayout:
+            orientation: 'vertical'
+            spacing: 5
+
+            BoxLayout:
+                size_hint_y: 0.1
+				padding: [0, 0, 20, 0]
+
+                Label:
+                    size_hint_x: 0.3
+                    text: '[b]MAC[/b]'
+					markup: True
+
+                Label:
+                    size_hint_x: 0.3
+                    text: '[b]IP[/b]'
+					markup: True
+
+                Label:
+                    size_hint_x: 0.4
+                    text: '[b]Role[/b]'
+					markup: True
+
+            DefaultScroll:
+                size_hint_y: 0.9
+
+                BoxLayout:
+					id: stack_role
+					orientation: 'vertical'
+					size_hint_y: None
+					height: self.minimum_height
+					padding: [0, 0, 20, 0]
+
     TabbedPanelItem:
         text: 'Settings'
-        BoxLayout:
-			orientation: 'vertical'
-			spacing: 5
-            Label:
-				size_hint_y: 2/23
-                text: '[b]Tracker frame intrinsic XYZ rotation to \ndriver frame (X: right, Y: up, Z: back) in degree[/b]'
-				markup: True
-				font_size: '25sp'
-				halign: 'center'
-			BoxLayout:
-				size_hint_y: 1/23
-				spacing: 10
-				Label:
-					size_hint_x: 0.25
-					text: '[b]Trackers[/b]'
-					markup: True
-				Label:
-					size_hint_x: 0.25
-					text: '[b]X[/b]'
-					markup: True
-				Label:
-					size_hint_x: 0.25
-					text: '[b]Y[/b]'
-					markup: True
-				Label:
-					size_hint_x: 0.25
-					text: '[b]Z[/b]'
-					markup: True
-			BoxLayout:
-				size_hint_y: 1/23
-				spacing: 10
-				Label:
-					size_hint_x: 0.25
-					text: '[b]Left shin[/b]'
-					markup: True
-				InputText:
-					id: lshin_x_text
-					text: '0'
-				InputText:
-					id: lshin_y_text
-					text: '0'
-				InputText:
-					id: lshin_z_text
-					text: '0'
-			BoxLayout:
-				size_hint_y: 1/23
-				spacing: 10
-				Label:
-					size_hint_x: 0.25
-					text: '[b]Right shin[/b]'
-					markup: True
-				InputText:
-					id: rshin_x_text
-					text: '0'
-				InputText:
-					id: rshin_y_text
-					text: '0'
-				InputText:
-					id: rshin_z_text
-					text: '0'
-			BoxLayout:
-				size_hint_y: 1/23
-				spacing: 10
-				Label:
-					size_hint_x: 0.25
-					text: '[b]Left thigh[/b]'
-					markup: True
-				InputText:
-					id: lthigh_x_text
-					text: '0'
-				InputText:
-					id: lthigh_y_text
-					text: '0'
-				InputText:
-					id: lthigh_z_text
-					text: '0'
-			BoxLayout:
-				size_hint_y: 1/23
-				spacing: 10
-				Label:
-					size_hint_x: 0.25
-					text: '[b]Right thigh[/b]'
-					markup: True
-				InputText:
-					id: rthigh_x_text
-					text: '0'
-				InputText:
-					id: rthigh_y_text
-					text: '0'
-				InputText:
-					id: rthigh_z_text
-					text: '0'
-			BoxLayout:
-				size_hint_y: 1/23
-				spacing: 10
-				Label:
-					size_hint_x: 0.25
-					text: '[b]Waist[/b]'
-					markup: True
-				InputText:
-					id: waist_x_text
-					text: '0'
-				InputText:
-					id: waist_y_text
-					text: '0'
-				InputText:
-					id: waist_z_text
-					text: '0'
-			BoxLayout:
-				size_hint_y: 1/23
-				spacing: 10
-				Label:
-					size_hint_x: 0.25
-					text: '[b]Chest[/b]'
-					markup: True
-				InputText:
-					id: chest_x_text
-					text: '0'
-					disabled: not chest_en_check.active
-				InputText:
-					id: chest_y_text
-					text: '0'
-					disabled: not chest_en_check.active
-				InputText:
-					id: chest_z_text
-					text: '0'
-					disabled: not chest_en_check.active
-			Label:
-				size_hint_y: 2/23
-                text: '[b]Paramater settings in meter[/b]'
-				markup: True
-				font_size: '25sp'
-			BoxLayout:
-				size_hint_y: 1/23
-				Label:
-					size_hint_x: 0.5
-					text: '[b]Shin vertical length (Knee to foot)[/b]'
-					markup: True
-				SliderValue:
-					id: shin_h
-					value: 0.5
-				Label:
-					size_hint_x: 0.1
-					text: '{:.2f}'.format(shin_h.value)
-			BoxLayout:
-				size_hint_y: 1/23
-				Label:
-					size_hint_x: 0.5
-					text: '[b]Thigh vertical length (Hip to knee)[/b]'
-					markup: True
-				SliderValue:
-					id: thigh_h
-					value: 0.4
-				Label:
-					size_hint_x: 0.1
-					text: '{:.2f}'.format(thigh_h.value)
-			BoxLayout:
-				size_hint_y: 1/23
-				Label:
-					size_hint_x: 0.5
-					text: '[b]Back vertical length (Hip to neck)[/b]'
-					markup: True
-				SliderValue:
-					id: back_h
-					value: 0.6
-				Label:
-					size_hint_x: 0.1
-					text: '{:.2f}'.format(back_h.value)
-			BoxLayout:
-				size_hint_y: 1/23
-				Label:
-					size_hint_x: 0.5
-					text: '[b]Head vertical length (Neck to headset / eye level)[/b]'
-					markup: True
-				SliderValue:
-					id: head_h
-					value: 0.2
-				Label:
-					size_hint_x: 0.1
-					text: '{:.2f}'.format(head_h.value)
-			BoxLayout:
-				size_hint_y: 1/23
-				Label:
-					size_hint_x: 0.5
-					text: '[b]Hip horizontal width[/b]'
-					markup: True
-				SliderValue:
-					id: hip_width_h
-					value: 0.3
-				Label:
-					size_hint_x: 0.1
-					text: '{:.2f}'.format(hip_width_h.value)
-			BoxLayout:
-				size_hint_y: 1/23
-				Label:
-					size_hint_x: 0.5
-					text: '[b]Shin tracker vertical position (Knee to tracker)[/b]'
-					markup: True
-				SliderValue:
-					id: shin_sensor_h
-					value: 0.2
-				Label:
-					size_hint_x: 0.1
-					text: '{:.2f}'.format(shin_sensor_h.value)
-			BoxLayout:
-				size_hint_y: 1/23
-				Label:
-					size_hint_x: 0.5
-					text: '[b]Thigh tracker vertical position (Hip to tracker)[/b]'
-					markup: True
-				SliderValue:
-					id: thigh_sensor_h
-					value: 0.2
-				Label:
-					size_hint_x: 0.1
-					text: '{:.2f}'.format(thigh_sensor_h.value)
-			BoxLayout:
-				size_hint_y: 1/23
-				Label:
-					size_hint_x: 0.5
-					text: '[b]Waist tracker vertical position (Hip to tracker)[/b]'
-					markup: True
-				SliderValue:
-					id: waist_sensor_h
-					value: 0.2
-				Label:
-					size_hint_x: 0.1
-					text: '{:.2f}'.format(waist_sensor_h.value)
-			BoxLayout:
-				size_hint_y: 1/23
-				Label:
-					size_hint_x: 0.5
-					text: '[b]Chest tracker vertical position (Neck to tracker)[/b]'
-					markup: True
-				SliderValue:
-					id: chest_sensor_h
-					disabled: not chest_en_check.active
-					value: 0.2
-				Label:
-					size_hint_x: 0.1
-					text: '{:.2f}'.format(chest_sensor_h.value)
-			Label:
-				size_hint_y: 2/23
-                text: '[b]Additional settings[/b]'
-				markup: True
-				font_size: '25sp'
-			BoxLayout:
-				size_hint_y: 1/23
-				Label:
-					size_hint_x: 0.7
-					text: '[b]Enable chest tracker for improved kinematics[/b]'
-					markup: True
-				Switch:
-					id: chest_en_check
-					size_hint_x: 0.3
-					active: False
-					
-	TabbedPanelItem:
-        text: 'Offset settings'
-        BoxLayout:
-			orientation: 'vertical'
-			spacing: 5
-            Label:
-				size_hint_y: 2/23
-                text: '[b]Tracker horizontal offset position settings in meter[/b]'
-				markup: True
-				font_size: '25sp'
-			BoxLayout:
-				size_hint_y: 1/23
-				Label:
-					size_hint_x: 0.2
-					text: '[b]Trackers[/b]'
-					markup: True
-				Label:
-					size_hint_x: 0.4
-					text: '[b]X (Right positive)[/b]'
-					markup: True
-				Label:
-					size_hint_x: 0.4
-					text: '[b]Z (Back positive)[/b]'
-					markup: True
-			BoxLayout:
-				size_hint_y: 1/23
-				Label:
-					size_hint_x: 0.2
-					text: '[b]Left shin[/b]'
-					markup: True
-				SliderPosValue:
-					id: lshin_pos_x
-				Label:
-					size_hint_x: 0.1
-					text: '{:.2f}'.format(lshin_pos_x.value)
-				SliderPosValue:
-					id: lshin_pos_z
-				Label:
-					size_hint_x: 0.1
-					text: '{:.2f}'.format(lshin_pos_z.value)
-			BoxLayout:
-				size_hint_y: 1/23
-				Label:
-					size_hint_x: 0.2
-					text: '[b]Right shin[/b]'
-					markup: True
-				SliderPosValue:
-					id: rshin_pos_x
-				Label:
-					size_hint_x: 0.1
-					text: '{:.2f}'.format(rshin_pos_x.value)
-				SliderPosValue:
-					id: rshin_pos_z
-				Label:
-					size_hint_x: 0.1
-					text: '{:.2f}'.format(rshin_pos_z.value)
-			BoxLayout:
-				size_hint_y: 1/23
-				Label:
-					size_hint_x: 0.2
-					text: '[b]Left thigh[/b]'
-					markup: True
-				SliderPosValue:
-					id: lthigh_pos_x
-				Label:
-					size_hint_x: 0.1
-					text: '{:.2f}'.format(lthigh_pos_x.value)
-				SliderPosValue:
-					id: lthigh_pos_z
-				Label:
-					size_hint_x: 0.1
-					text: '{:.2f}'.format(lthigh_pos_z.value)
-			BoxLayout:
-				size_hint_y: 1/23
-				Label:
-					size_hint_x: 0.2
-					text: '[b]Right thigh[/b]'
-					markup: True
-				SliderPosValue:
-					id: rthigh_pos_x
-				Label:
-					size_hint_x: 0.1
-					text: '{:.2f}'.format(rthigh_pos_x.value)
-				SliderPosValue:
-					id: rthigh_pos_z
-				Label:
-					size_hint_x: 0.1
-					text: '{:.2f}'.format(rthigh_pos_z.value)
-			BoxLayout:
-				size_hint_y: 1/23
-				Label:
-					size_hint_x: 0.2
-					text: '[b]Waist[/b]'
-					markup: True
-				SliderPosValue:
-					id: waist_pos_x
-				Label:
-					size_hint_x: 0.1
-					text: '{:.2f}'.format(waist_pos_x.value)
-				SliderPosValue:
-					id: waist_pos_z
-				Label:
-					size_hint_x: 0.1
-					text: '{:.2f}'.format(waist_pos_z.value)
-			BoxLayout:
-				size_hint_y: 1/23
-				Label:
-					size_hint_x: 0.2
-					text: '[b]Chest[/b]'
-					markup: True
-				SliderPosValue:
-					id: chest_pos_x
-					disabled: not chest_en_check.active
-				Label:
-					size_hint_x: 0.1
-					text: '{:.2f}'.format(chest_pos_x.value)
-				SliderPosValue:
-					id: chest_pos_z
-					disabled: not chest_en_check.active
-				Label:
-					size_hint_x: 0.1
-					text: '{:.2f}'.format(chest_pos_z.value)
-			BoxLayout:
-				size_hint_y: 1/23
-				Label:
-					size_hint_x: 0.2
-					text: '[b]Headset[/b]'
-					markup: True
-				SliderPosValue:
-					id: head_pos_x
-				Label:
-					size_hint_x: 0.1
-					text: '{:.2f}'.format(head_pos_x.value)
-				SliderPosValue:
-					id: head_pos_z
-				Label:
-					size_hint_x: 0.1
-					text: '{:.2f}'.format(head_pos_z.value)
-			BoxLayout:
-				size_hint_y: 13/23		
 
-	TabbedPanelItem:
-		text: 'WiFi Settings'
-		BoxLayout:
-			orientation: 'vertical'
-			spacing: 5
-			BoxLayout:
-				size_hint_y: 0.25
-			BoxLayout:
-				size_hint_y: 0.1
-				Label:
-					size_hint_x: 0.2
-					text: 'COM Port'
-				Spinner:
+        DefaultScroll:
+
+            DefaultVBox:
+                padding: [0, 0, 20, 20]
+                
+                DefaultLabel:
+                    padding_y: 10
+                    font_size: '20sp'
+                    text: '[b]Tracker frame intrinsic XYZ rotation to \ndriver frame (X: right, Y: up, Z: back) when standing in T-pose in degree[/b]'
+
+                DefaultHBox:
+
+                    DefaultLabel:
+                        size_hint_x: 0.4
+                        text: '[b]Trackers[/b]'
+
+                    DefaultLabel:
+                        size_hint_x: 0.2
+                        text: '[b]X[/b]'
+
+                    DefaultLabel:
+                        size_hint_x: 0.2
+                        text: '[b]Y[/b]'
+
+                    DefaultLabel:
+                        size_hint_x: 0.2
+                        text: '[b]Z[/b]'
+
+                TransformInput:
+                    id: lfoot_t
+                    desc: 'Left foot'
+
+                TransformInput:
+                    id: rfoot_t
+                    desc: 'Right foot'
+
+                TransformInput:
+                    id: lshin_t
+                    desc: 'Left lower leg'
+
+                TransformInput:
+                    id: rshin_t
+                    desc: 'Right lower leg'
+
+                TransformInput:
+                    id: lthigh_t
+                    desc: 'Left thigh'
+
+                TransformInput:
+                    id: rthigh_t
+                    desc: 'Right thigh'
+
+                TransformInput:
+                    id: waist_t
+                    desc: 'Waist'
+
+                TransformInput:
+                    id: chest_t
+                    desc: 'Chest'
+
+                TransformInput:
+                    id: lshoulder_t
+                    desc: 'Left shoulder'
+
+                TransformInput:
+                    id: rshoulder_t
+                    desc: 'Right shoulder'
+
+                TransformInput:
+                    id: lupperarm_t
+                    desc: 'Left upper arm'
+
+                TransformInput:
+                    id: rupperarm_t
+                    desc: 'Right upper arm'
+
+                DefaultHBox:
+                    
+                    DefaultLabel:
+                        size_hint_x: 0.9
+                        padding_y: 10
+                        font_size: '20sp'
+                        text: '[b]Body segment length in meter[/b]'
+
+                    Button:
+                        size_hint_x: 0.1
+                        text: 'Help'
+                        on_release: app.show_popup()
+
+                SegmentSlider:
+                    id: shin_h
+                    desc: 'Foot to knee (lower leg)'
+                    val: 0.5
+
+                SegmentSlider:
+                    id: thigh_h
+                    desc: 'Knee to hip (thigh)'
+                    val: 0.4
+
+                SegmentSlider:
+                    id: lback_h
+                    desc: 'Hip center to mid back (lower back)'
+                    val: 0.25
+
+                SegmentSlider:
+                    id: uback_h
+                    desc: 'Mid back to neck (upper back)'
+                    val: 0.35
+
+                SegmentSlider:
+                    id: head_h
+                    desc: 'Neck to headset (head)'
+                    val: 0.2
+
+                SegmentSlider:
+                    id: shoulder_h
+                    desc: 'Neck to shoulder center'
+                    val: 0.1
+
+                SegmentSlider:
+                    id: hip_width_h
+                    desc: 'Hip width'
+                    val: 0.3
+
+                SegmentSlider:
+                    id: shoulder_width_h
+                    desc: 'Shoulder width'
+                    val: 0.3
+
+                DefaultHBox:
+                    
+                    DefaultLabel:
+                        size_hint_x: 0.9
+                        padding_y: 10
+                        font_size: '20sp'
+                        text: '[b]Tracker position from joint in meter[/b]'
+
+                    Button:
+                        size_hint_x: 0.1
+                        text: 'Help'
+                        on_release: app.show_popup()
+
+                SegmentSlider:
+                    id: foot_sensor_h
+                    desc: 'Foot tracker from ankle joint'
+                    val: 0.05
+
+                SegmentSlider:
+                    id: shin_sensor_h
+                    desc: 'Lower leg tracker from knee joint'
+                    val: 0.2
+
+                SegmentSlider:
+                    id: thigh_sensor_h
+                    desc: 'Thigh tracker from hip joint'
+                    val: 0.2
+
+                SegmentSlider:
+                    id: waist_sensor_h
+                    desc: 'Waist tracker from hip center joint'
+                    val: 0.2
+
+                SegmentSlider:
+                    id: chest_sensor_h
+                    desc: 'Chest tracker from mid back joint'
+                    val: 0.2
+
+                SegmentSlider:
+                    id: shoulder_sensor_h
+                    desc: 'Shoulder tracker from shoulder center joint'
+                    val: 0.1
+
+                SegmentSlider:
+                    id: upperarm_sensor_h
+                    desc: 'Upper arm tracker from shoulder joint'
+                    val: 0.15
+
+                DefaultLabel:
+                    padding_y: 10
+                    font_size: '20sp'
+                    text: '[b]Additional settings[/b]'
+
+                OnOffSwitch:
+                    id: feet_en_check
+                    desc: 'Enable feet tracker for precise feet tracking (Feet tracker required)\nIf disabled, lower leg tracker will be used as feet role in SteamVR'
+
+    TabbedPanelItem:
+        text: 'Offset settings'
+
+        DefaultScroll:
+
+            DefaultVBox:
+                padding: [0, 0, 20, 20]
+
+                DefaultLabel:
+                    padding_y: 10
+                    font_size: '20sp'
+                    text: '[b]Tracker position offset when standing in T-pose in meter[/b]'
+
+                DefaultHBox:
+
+                    DefaultLabel:
+                        size_hint_x: 0.2
+                        text: '[b]Trackers[/b]'
+
+                    DefaultLabel:
+                        size_hint_x: 0.4
+                        text: '[b]Left <--------------------> Right[/b]'
+
+                    DefaultLabel:
+                        size_hint_x: 0.4
+                        text: '[b]Front <--------------------> Back[/b]'
+
+                OffsetSlider:
+                    id: lshin_o
+                    desc: 'Left lower leg'
+
+                OffsetSlider:
+                    id: rshin_o
+                    desc: 'Right lower leg'
+
+                OffsetSlider:
+                    id: lthigh_o
+                    desc: 'Left thigh'
+
+                OffsetSlider:
+                    id: rthigh_o
+                    desc: 'Right thigh'
+
+                OffsetSlider:
+                    id: waist_o
+                    desc: 'Waist'
+
+                OffsetSlider:
+                    id: chest_o
+                    desc: 'Chest'
+
+                OffsetSlider:
+                    id: head_o
+                    desc: 'Headset'
+
+                DefaultHBox:
+                    padding: [0, 20, 0, 0]
+
+                    DefaultLabel:
+                        size_hint_x: 0.2
+                        text: '[b]Trackers[/b]'
+
+                    DefaultLabel:
+                        size_hint_x: 0.4
+                        text: '[b]Left <--------------------> Right[/b]'
+
+                    DefaultLabel:
+                        size_hint_x: 0.4
+                        text: '[b]Down <--------------------> Up[/b]'
+
+                OffsetSlider:
+                    id: lfoot_o
+                    desc: 'Left foot'
+
+                OffsetSlider:
+                    id: rfoot_o
+                    desc: 'Right foot'
+
+                DefaultHBox:
+                    padding: [0, 20, 0, 0]
+
+                    DefaultLabel:
+                        size_hint_x: 0.2
+                        text: '[b]Trackers[/b]'
+
+                    DefaultLabel:
+                        size_hint_x: 0.4
+                        text: '[b]Front <--------------------> Back[/b]'
+
+                    DefaultLabel:
+                        size_hint_x: 0.4
+                        text: '[b]Down <--------------------> Up[/b]'
+
+                OffsetSlider:
+                    id: lshoulder_o
+                    desc: 'Left shoulder'
+                
+                OffsetSlider:
+                    id: rshoulder_o
+                    desc: 'Right shoulder'
+
+                OffsetSlider:
+                    id: lupperarm_o
+                    desc: 'Left upper arm'
+
+                OffsetSlider:
+                    id: rupperarm_o
+                    desc: 'Right upper arm'
+
+    TabbedPanelItem:
+        text: 'WiFi settings'
+
+        BoxLayout:
+            orientation: 'vertical'
+
+            BoxLayout:
+                size_hint_y: 0.3
+
+            DefaultHBox:
+                height: self.minimum_height * 2
+
+                Label:
+                    size_hint_x: 0.25
+
+                DefaultLabel:
+                    size_hint_x: 0.2
+                    text: 'COM port'
+
+                Spinner:
 					id: com_port_list
-					size_hint_x: 0.8
-			BoxLayout:
-				size_hint_y: 0.1
-				Label:
-					size_hint_x: 0.2
-					text: 'WiFi SSID'
-				TextInput:
-					id: wifi_ssid
-					size_hint_x: 0.8
-					multiline: False
-					write_tab: False
-					on_focus: app.textinput_focus(args)
-			BoxLayout:
-				size_hint_y: 0.1
-				Label:
-					size_hint_x: 0.2
-					text: 'WiFi Password'
-				TextInput:
-					id: wifi_password
-					size_hint_x: 0.8
-					multiline: False
-					write_tab: False
+					size_hint_x: 0.3
+
+                Label:
+                    size_hint_x: 0.25
+
+            DefaultHBox:
+                height: self.minimum_height * 2
+
+                Label:
+                    size_hint_x: 0.25
+
+                DefaultLabel:
+                    size_hint_x: 0.2
+                    text: 'WiFi SSID'
+
+                DefaultInput:
+                    id: wifi_ssid
+                    size_hint_x: 0.3
+                    text: ''
+                    input_filter: None
+
+                Label:
+                    size_hint_x: 0.25
+
+            DefaultHBox:
+                height: self.minimum_height * 2
+
+                Label:
+                    size_hint_x: 0.25
+
+                DefaultLabel:
+                    size_hint_x: 0.2
+                    text: 'WiFi password'
+
+                DefaultInput:
+                    id: wifi_password
+                    size_hint_x: 0.3
+                    text: ''
+                    input_filter: None
 					password: True
-					on_focus: app.textinput_focus(args)
-			BoxLayout:
-				size_hint_y: 0.1
-				Label:
-					size_hint_x: 0.25
-				Button:
+
+                Label:
+                    size_hint_x: 0.25
+
+            DefaultHBox:
+                height: self.minimum_height * 2
+
+                Label:
+                    size_hint_x: 0.4
+
+                Button:
 					id: wifi_configure
-					size_hint_x: 0.5
+					size_hint_x: 0.2
+                    size_hint_y: None
+                    height: self.texture_size[1] * 2
 					text: 'Configure'
 					on_release: app.configure_wifi()
-				Label:
-					size_hint_x: 0.25
-			BoxLayout:
-				size_hint_y: 0.1
-				Label:
-					id: wifi_configure_status
-			BoxLayout:
-				size_hint_y: 0.25
+
+                Label:
+                    size_hint_x: 0.4
+
+            DefaultHBox:
+                height: self.minimum_height * 2
+
+                DefaultLabel:
+                    id: wifi_configure_status
+                    text: 'WiFi setup'
+
+            BoxLayout:
+                size_hint_y: 0.7

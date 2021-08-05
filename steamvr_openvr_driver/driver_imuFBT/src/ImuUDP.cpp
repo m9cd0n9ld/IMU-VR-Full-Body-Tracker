@@ -53,138 +53,202 @@ void ImuUDP::init() {
 void ImuUDP::start()
 {
 	while (SocketActivated) {
-		bKeepReading = true;
-		while (bKeepReading) {
-			memset(buff, 0, sizeof(buff));
-			bytes_read = recvfrom(socketS, buff, sizeof(buff), 0, (sockaddr*)&local, &locallen);
+		memset(buff, 0, sizeof(buff));
+		bytes_read = recvfrom(socketS, buff, sizeof(buff), 0, (sockaddr*)&local, &locallen);
 
-			if (bytes_read == 19) {
-				payload = (Payload*)buff;
-				if (payload->header == (uint8_t)'I' && payload->footer == (uint8_t)'i') {
-					switch (payload->id) {
-					case LSHIN:
-						imu_lshin = Quaternionf(payload->w, payload->x, payload->y, payload->z);
-						t_lshin_last = std::chrono::high_resolution_clock::now();
-						lshin_available = true;
-						break;
-					case RSHIN:
-						imu_rshin = Quaternionf(payload->w, payload->x, payload->y, payload->z);
-						t_rshin_last = std::chrono::high_resolution_clock::now();
-						rshin_available = true;
-						break;
-					case LTHIGH:
-						imu_lthigh = Quaternionf(payload->w, payload->x, payload->y, payload->z);
-						t_lthigh_last = std::chrono::high_resolution_clock::now();
-						lthigh_available = true;
-						break;
-					case RTHIGH:
-						imu_rthigh = Quaternionf(payload->w, payload->x, payload->y, payload->z);
-						t_rthigh_last = std::chrono::high_resolution_clock::now();
-						rthigh_available = true;
-						break;
-					case WAIST:
-						imu_waist = Quaternionf(payload->w, payload->x, payload->y, payload->z);
-						t_waist_last = std::chrono::high_resolution_clock::now();
-						waist_available = true;
-						break;
-					case CHEST:
-						imu_chest = Quaternionf(payload->w, payload->x, payload->y, payload->z);
-						t_chest_last = std::chrono::high_resolution_clock::now();
-						chest_available = true;
-						break;
-					}
+		if (bytes_read == sizeof(Payload)) {
+			payload = (Payload*)buff;
+			if (payload->header == (uint8_t)'I' && payload->footer == (uint8_t)'i') {
+				switch (payload->id) {
+				case LFOOT:
+					imu_lfoot = Quaternionf(payload->w, payload->x, payload->y, payload->z);
+					t_lfoot_last = std::chrono::high_resolution_clock::now();
+					lfoot_available = true;
+					break;
+				case RFOOT:
+					imu_rfoot = Quaternionf(payload->w, payload->x, payload->y, payload->z);
+					t_rfoot_last = std::chrono::high_resolution_clock::now();
+					rfoot_available = true;
+					break;
+				case LSHIN:
+					imu_lshin = Quaternionf(payload->w, payload->x, payload->y, payload->z);
+					t_lshin_last = std::chrono::high_resolution_clock::now();
+					lshin_available = true;
+					break;
+				case RSHIN:
+					imu_rshin = Quaternionf(payload->w, payload->x, payload->y, payload->z);
+					t_rshin_last = std::chrono::high_resolution_clock::now();
+					rshin_available = true;
+					break;
+				case LTHIGH:
+					imu_lthigh = Quaternionf(payload->w, payload->x, payload->y, payload->z);
+					t_lthigh_last = std::chrono::high_resolution_clock::now();
+					lthigh_available = true;
+					break;
+				case RTHIGH:
+					imu_rthigh = Quaternionf(payload->w, payload->x, payload->y, payload->z);
+					t_rthigh_last = std::chrono::high_resolution_clock::now();
+					rthigh_available = true;
+					break;
+				case WAIST:
+					imu_waist = Quaternionf(payload->w, payload->x, payload->y, payload->z);
+					t_waist_last = std::chrono::high_resolution_clock::now();
+					waist_available = true;
+					break;
+				case CHEST:
+					imu_chest = Quaternionf(payload->w, payload->x, payload->y, payload->z);
+					t_chest_last = std::chrono::high_resolution_clock::now();
+					chest_available = true;
+					break;
+				case LSHOULDER:
+					imu_lshoulder = Quaternionf(payload->w, payload->x, payload->y, payload->z);
+					t_lshoulder_last = std::chrono::high_resolution_clock::now();
+					lshoulder_available = true;
+					break;
+				case RSHOULDER:
+					imu_rshoulder = Quaternionf(payload->w, payload->x, payload->y, payload->z);
+					t_rshoulder_last = std::chrono::high_resolution_clock::now();
+					rshoulder_available = true;
+					break;
+				case LUPPERARM:
+					imu_lupperarm = Quaternionf(payload->w, payload->x, payload->y, payload->z);
+					t_lupperarm_last = std::chrono::high_resolution_clock::now();
+					lupperarm_available = true;
+					break;
+				case RUPPERARM:
+					imu_rupperarm = Quaternionf(payload->w, payload->x, payload->y, payload->z);
+					t_rupperarm_last = std::chrono::high_resolution_clock::now();
+					rupperarm_available = true;
+					break;
 				}
 			}
+		}
 
-			else if (bytes_read == 58) {
-				offset_settings = (OffsetSettings*)buff;
-				if (offset_settings->header == (uint8_t)'I' && offset_settings->footer == (uint8_t)'i') {
-					Vector2f lshin_offset(offset_settings->lshin_x, offset_settings->lshin_z);
-					Vector2f rshin_offset(offset_settings->rshin_x, offset_settings->rshin_z);
-					Vector2f lthigh_offset(offset_settings->lthigh_x, offset_settings->lthigh_z);
-					Vector2f rthigh_offset(offset_settings->rthigh_x, offset_settings->rthigh_z);
-					Vector2f waist_offset(offset_settings->waist_x, offset_settings->waist_z);
-					Vector2f chest_offset(offset_settings->chest_x, offset_settings->chest_z);
-					Vector2f head_offset(offset_settings->head_x, offset_settings->head_z);
-					bk->setHorizontalOffset(lshin_offset, rshin_offset, lthigh_offset, rthigh_offset, waist_offset, chest_offset, head_offset);
+		else if (bytes_read == sizeof(OffsetSettings)) {
+			offset_settings = (OffsetSettings*)buff;
+			if (offset_settings->header == (uint8_t)'I' && offset_settings->footer == (uint8_t)'i') {
+				Vector2f lfoot_offset(offset_settings->lfoot_1, offset_settings->lfoot_2);
+				Vector2f rfoot_offset(offset_settings->rfoot_1, offset_settings->rfoot_2);
+				Vector2f lshin_offset(offset_settings->lshin_1, offset_settings->lshin_2);
+				Vector2f rshin_offset(offset_settings->rshin_1, offset_settings->rshin_2);
+				Vector2f lthigh_offset(offset_settings->lthigh_1, offset_settings->lthigh_2);
+				Vector2f rthigh_offset(offset_settings->rthigh_1, offset_settings->rthigh_2);
+				Vector2f waist_offset(offset_settings->waist_1, offset_settings->waist_2);
+				Vector2f chest_offset(offset_settings->chest_1, offset_settings->chest_2);
+				Vector2f lshoulder_offset(offset_settings->lshoulder_1, offset_settings->lshoulder_2);
+				Vector2f rshoulder_offset(offset_settings->rshoulder_1, offset_settings->rshoulder_2);
+				Vector2f lupperarm_offset(offset_settings->lupperarm_1, offset_settings->lupperarm_2);
+				Vector2f rupperarm_offset(offset_settings->rupperarm_1, offset_settings->rupperarm_2);
+				Vector2f head_offset(offset_settings->head_1, offset_settings->head_2);
+				bk->setSensorOffset(lfoot_offset, rfoot_offset, lshin_offset, rshin_offset, lthigh_offset, rthigh_offset, waist_offset, chest_offset, lshoulder_offset, rshoulder_offset, lupperarm_offset, rupperarm_offset, head_offset);
+			}
+		}
+
+		else if (bytes_read == sizeof(PayloadSettings)) {
+			payload_settings = (PayloadSettings*)buff;
+			if (payload_settings->header == (uint8_t)'I' && payload_settings->footer == (uint8_t)'i') {
+				Quaternionf T_lfoot = bk->euXYZ_to_quat(payload_settings->lfoot_x, payload_settings->lfoot_y, payload_settings->lfoot_z);
+				Quaternionf T_rfoot = bk->euXYZ_to_quat(payload_settings->rfoot_x, payload_settings->rfoot_y, payload_settings->rfoot_z);
+				Quaternionf T_lshin = bk->euXYZ_to_quat(payload_settings->lshin_x, payload_settings->lshin_y, payload_settings->lshin_z);
+				Quaternionf T_rshin = bk->euXYZ_to_quat(payload_settings->rshin_x, payload_settings->rshin_y, payload_settings->rshin_z);
+				Quaternionf T_lthigh = bk->euXYZ_to_quat(payload_settings->lthigh_x, payload_settings->lthigh_y, payload_settings->lthigh_z);
+				Quaternionf T_rthigh = bk->euXYZ_to_quat(payload_settings->rthigh_x, payload_settings->rthigh_y, payload_settings->rthigh_z);
+				Quaternionf T_waist = bk->euXYZ_to_quat(payload_settings->waist_x, payload_settings->waist_y, payload_settings->waist_z);
+				Quaternionf T_chest = bk->euXYZ_to_quat(payload_settings->chest_x, payload_settings->chest_y, payload_settings->chest_z);
+				Quaternionf T_lshoulder = bk->euXYZ_to_quat(payload_settings->lshoulder_x, payload_settings->lshoulder_y, payload_settings->lshoulder_z);
+				Quaternionf T_rshoulder = bk->euXYZ_to_quat(payload_settings->rshoulder_x, payload_settings->rshoulder_y, payload_settings->rshoulder_z);
+				Quaternionf T_lupperarm = bk->euXYZ_to_quat(payload_settings->lupperarm_x, payload_settings->lupperarm_y, payload_settings->lupperarm_z);
+				Quaternionf T_rupperarm = bk->euXYZ_to_quat(payload_settings->rupperarm_x, payload_settings->rupperarm_y, payload_settings->rupperarm_z);
+				bk->setSensorTransform(T_lfoot, T_rfoot, T_lshin, T_rshin, T_lthigh, T_rthigh, T_waist, T_chest, T_lshoulder, T_rshoulder, T_lupperarm, T_rupperarm);
+				bk->setParam(payload_settings->shin,
+					payload_settings->thigh,
+					payload_settings->lback,
+					payload_settings->uback,
+					payload_settings->head,
+					payload_settings->shoulder,
+					payload_settings->hip_width,
+					payload_settings->shoulder_width,
+					payload_settings->foot_sensor,
+					payload_settings->shin_sensor,
+					payload_settings->thigh_sensor,
+					payload_settings->waist_sensor,
+					payload_settings->chest_sensor,
+					payload_settings->shoulder_sensor,
+					payload_settings->upperarm_sensor);
+				feet_enable = payload_settings->feet_en;
+			}
+		}
+
+		else if (bytes_read == sizeof(Calibrate)) {
+			calibrate = (Calibrate*)buff;
+			if (calibrate->header == (uint8_t)'I' && calibrate->footer == (uint8_t)'i') {
+				if (calibrate->calib == 51) {
+					float yaw = atan2f(-mat_hmd(2, 0), mat_hmd(0, 0));
+					Quaternionf direction = bk->euYXZ_to_quat(yaw, 0, 0);
+					bk->setOffset(imu_lfoot, imu_rfoot, imu_lshin, imu_rshin, imu_lthigh, imu_rthigh, imu_waist, imu_chest, imu_lshoulder, imu_rshoulder, imu_lupperarm, imu_rupperarm, direction);
 				}
 			}
+		}
 
-			else if (bytes_read == 111) {
-				payload_settings = (PayloadSettings*)buff;
-				if (payload_settings->header == (uint8_t)'I' && payload_settings->footer == (uint8_t)'i') {
-					Quaternionf T_lshin = bk->euXYZ_to_quat(payload_settings->lshin_x, payload_settings->lshin_y, payload_settings->lshin_z);
-					Quaternionf T_rshin = bk->euXYZ_to_quat(payload_settings->rshin_x, payload_settings->rshin_y, payload_settings->rshin_z);
-					Quaternionf T_lthigh = bk->euXYZ_to_quat(payload_settings->lthigh_x, payload_settings->lthigh_y, payload_settings->lthigh_z);
-					Quaternionf T_rthigh = bk->euXYZ_to_quat(payload_settings->rthigh_x, payload_settings->rthigh_y, payload_settings->rthigh_z);
-					Quaternionf T_waist = bk->euXYZ_to_quat(payload_settings->waist_x, payload_settings->waist_y, payload_settings->waist_z);
-					Quaternionf T_chest = bk->euXYZ_to_quat(payload_settings->chest_x, payload_settings->chest_y, payload_settings->chest_z);
-					bk->setSensorTransform(T_lshin, T_rshin, T_lthigh, T_rthigh, T_waist, T_chest);
-					bk->setParam(payload_settings->shin,
-						payload_settings->thigh,
-						payload_settings->back,
-						payload_settings->head,
-						payload_settings->hip_width,
-						payload_settings->shin_sensor,
-						payload_settings->thigh_sensor,
-						payload_settings->waist_sensor,
-						payload_settings->chest_sensor,
-						payload_settings->chest_en);
-					chest_enable = payload_settings->chest_en;
-				}
-			}
+		t_end = std::chrono::high_resolution_clock::now();
 
-			else if (bytes_read == 3) {
-				calibrate = (Calibrate*)buff;
-				if (calibrate->header == (uint8_t)'I' && calibrate->footer == (uint8_t)'i') {
-					if (calibrate->calib == 51) {
-						float yaw = atan2f(-mat_hmd(2, 0), mat_hmd(0, 0));
-						Quaternionf direction = bk->euYXZ_to_quat(yaw, 0, 0);
-						bk->setOffset(imu_lshin, imu_rshin, imu_lthigh, imu_rthigh, imu_waist, imu_chest, direction);
-					}
-				}
-			}
+		elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_server_last).count();
+		if (elapsed_time_ms >= 1000) {
+			ping.header = (uint8_t)'I';
+			ping.msg = 87;
+			ping.driverPort = driverPort;
+			ping.footer = (uint8_t)'i';
+			sendto(socketS, (char*)&ping, sizeof(ping), 0, (sockaddr*)&localT, locallenT);
+			t_server_last = std::chrono::high_resolution_clock::now();
+		}
 
-			else {
-				bKeepReading = false;
-			}
-
-			t_end = std::chrono::high_resolution_clock::now();
-
-			elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_server_last).count();
-			if (elapsed_time_ms >= 1000) {
-				ping.header = (uint8_t)'I';
-				ping.msg = 87;
-				ping.driverPort = driverPort;
-				ping.footer = (uint8_t)'i';
-				sendto(socketS, (char*)&ping, sizeof(ping), 0, (sockaddr*)&localT, locallenT);
-				t_server_last = std::chrono::high_resolution_clock::now();
-			}
-
-			elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_lshin_last).count();
-			if (elapsed_time_ms >= 1000) {
-				lshin_available = false;
-			}
-			elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_rshin_last).count();
-			if (elapsed_time_ms >= 1000) {
-				rshin_available = false;
-			}
-			elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_lthigh_last).count();
-			if (elapsed_time_ms >= 1000) {
-				lthigh_available = false;
-			}
-			elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_rthigh_last).count();
-			if (elapsed_time_ms >= 1000) {
-				rthigh_available = false;
-			}
-			elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_waist_last).count();
-			if (elapsed_time_ms >= 1000) {
-				waist_available = false;
-			}
-			elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_chest_last).count();
-			if (elapsed_time_ms >= 1000) {
-				chest_available = false;
-			}
+		elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_lfoot_last).count();
+		if (elapsed_time_ms >= 1000) {
+			lfoot_available = false;
+		}
+		elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_rfoot_last).count();
+		if (elapsed_time_ms >= 1000) {
+			rfoot_available = false;
+		}
+		elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_lshin_last).count();
+		if (elapsed_time_ms >= 1000) {
+			lshin_available = false;
+		}
+		elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_rshin_last).count();
+		if (elapsed_time_ms >= 1000) {
+			rshin_available = false;
+		}
+		elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_lthigh_last).count();
+		if (elapsed_time_ms >= 1000) {
+			lthigh_available = false;
+		}
+		elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_rthigh_last).count();
+		if (elapsed_time_ms >= 1000) {
+			rthigh_available = false;
+		}
+		elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_waist_last).count();
+		if (elapsed_time_ms >= 1000) {
+			waist_available = false;
+		}
+		elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_chest_last).count();
+		if (elapsed_time_ms >= 1000) {
+			chest_available = false;
+		}
+		elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_lshoulder_last).count();
+		if (elapsed_time_ms >= 1000) {
+			lshoulder_available = false;
+		}
+		elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_rshoulder_last).count();
+		if (elapsed_time_ms >= 1000) {
+			rshoulder_available = false;
+		}
+		elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_lupperarm_last).count();
+		if (elapsed_time_ms >= 1000) {
+			lupperarm_available = false;
+		}
+		elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_rupperarm_last).count();
+		if (elapsed_time_ms >= 1000) {
+			rupperarm_available = false;
 		}
 	}
 }

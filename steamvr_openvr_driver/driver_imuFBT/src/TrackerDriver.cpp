@@ -87,9 +87,89 @@ DriverPose_t TrackerDriver::GetPose()
 
 	if (SocketActivated) {
 		switch (TrackerIndex) {
+		case LFOOT:
+			if (feet_enable) {
+				if (lfoot_available) {
+					if (lshin_available && lthigh_available && waist_available && chest_available) {
+						pose.poseIsValid = true;
+						pose.result = TrackingResult_Running_OK;
+						pose.deviceIsConnected = true;
+					}
+					else {
+						pose.poseIsValid = true;
+						pose.result = TrackingResult_Fallback_RotationOnly;
+						pose.deviceIsConnected = true;
+					}
+				}
+				else {
+					pose.poseIsValid = false;
+					pose.result = TrackingResult_Running_OutOfRange;
+					pose.deviceIsConnected = false;
+				}
+			}
+			else {
+				if (lshin_available) {
+					if (lthigh_available && waist_available && chest_available) {
+						pose.poseIsValid = true;
+						pose.result = TrackingResult_Running_OK;
+						pose.deviceIsConnected = true;
+					}
+					else {
+						pose.poseIsValid = true;
+						pose.result = TrackingResult_Fallback_RotationOnly;
+						pose.deviceIsConnected = true;
+					}
+				}
+				else {
+					pose.poseIsValid = false;
+					pose.result = TrackingResult_Running_OutOfRange;
+					pose.deviceIsConnected = false;
+				}
+			}
+			break;
+		case RFOOT:
+			if (feet_enable) {
+				if (rfoot_available) {
+					if (rshin_available && rthigh_available && waist_available && chest_available) {
+						pose.poseIsValid = true;
+						pose.result = TrackingResult_Running_OK;
+						pose.deviceIsConnected = true;
+					}
+					else {
+						pose.poseIsValid = true;
+						pose.result = TrackingResult_Fallback_RotationOnly;
+						pose.deviceIsConnected = true;
+					}
+				}
+				else {
+					pose.poseIsValid = false;
+					pose.result = TrackingResult_Running_OutOfRange;
+					pose.deviceIsConnected = false;
+				}
+			}
+			else {
+				if (rshin_available) {
+					if (rthigh_available && waist_available && chest_available) {
+						pose.poseIsValid = true;
+						pose.result = TrackingResult_Running_OK;
+						pose.deviceIsConnected = true;
+					}
+					else {
+						pose.poseIsValid = true;
+						pose.result = TrackingResult_Fallback_RotationOnly;
+						pose.deviceIsConnected = true;
+					}
+				}
+				else {
+					pose.poseIsValid = false;
+					pose.result = TrackingResult_Running_OutOfRange;
+					pose.deviceIsConnected = false;
+				}
+			}
+			break;
 		case LSHIN:
 			if (lshin_available) {
-				if (lthigh_available && waist_available) {
+				if (lthigh_available && waist_available && chest_available) {
 					pose.poseIsValid = true;
 					pose.result = TrackingResult_Running_OK;
 					pose.deviceIsConnected = true;
@@ -108,7 +188,7 @@ DriverPose_t TrackerDriver::GetPose()
 			break;
 		case RSHIN:
 			if (rshin_available) {
-				if (rthigh_available && waist_available) {
+				if (rthigh_available && waist_available && chest_available) {
 					pose.poseIsValid = true;
 					pose.result = TrackingResult_Running_OK;
 					pose.deviceIsConnected = true;
@@ -127,7 +207,7 @@ DriverPose_t TrackerDriver::GetPose()
 			break;
 		case LTHIGH:
 			if (lthigh_available) {
-				if (waist_available) {
+				if (waist_available && chest_available) {
 					pose.poseIsValid = true;
 					pose.result = TrackingResult_Running_OK;
 					pose.deviceIsConnected = true;
@@ -146,7 +226,7 @@ DriverPose_t TrackerDriver::GetPose()
 			break;
 		case RTHIGH:
 			if (rthigh_available) {
-				if (waist_available) {
+				if (waist_available && chest_available) {
 					pose.poseIsValid = true;
 					pose.result = TrackingResult_Running_OK;
 					pose.deviceIsConnected = true;
@@ -165,21 +245,14 @@ DriverPose_t TrackerDriver::GetPose()
 			break;
 		case WAIST:
 			if (waist_available) {
-				if (chest_enable) {
-					if (chest_available) {
-						pose.poseIsValid = true;
-						pose.result = TrackingResult_Running_OK;
-						pose.deviceIsConnected = true;
-					}
-					else {
-						pose.poseIsValid = true;
-						pose.result = TrackingResult_Fallback_RotationOnly;
-						pose.deviceIsConnected = true;
-					}
+				if (chest_available) {
+					pose.poseIsValid = true;
+					pose.result = TrackingResult_Running_OK;
+					pose.deviceIsConnected = true;
 				}
 				else {
 					pose.poseIsValid = true;
-					pose.result = TrackingResult_Running_OK;
+					pose.result = TrackingResult_Fallback_RotationOnly;
 					pose.deviceIsConnected = true;
 				}
 			}
@@ -190,10 +263,86 @@ DriverPose_t TrackerDriver::GetPose()
 			}
 			break;
 		case CHEST:
-			if (chest_available && chest_enable) {
+			if (chest_available) {
 				pose.poseIsValid = true;
 				pose.result = TrackingResult_Running_OK;
 				pose.deviceIsConnected = true;
+			}
+			else {
+				pose.poseIsValid = false;
+				pose.result = TrackingResult_Running_OutOfRange;
+				pose.deviceIsConnected = false;
+			}
+			break;
+		case LSHOULDER:
+			if (lshoulder_available) {
+				if (chest_available) {
+					pose.poseIsValid = true;
+					pose.result = TrackingResult_Running_OK;
+					pose.deviceIsConnected = true;
+				}
+				else {
+					pose.poseIsValid = true;
+					pose.result = TrackingResult_Fallback_RotationOnly;
+					pose.deviceIsConnected = true;
+				}
+			}
+			else {
+				pose.poseIsValid = false;
+				pose.result = TrackingResult_Running_OutOfRange;
+				pose.deviceIsConnected = false;
+			}
+			break;
+		case RSHOULDER:
+			if (rshoulder_available) {
+				if (chest_available) {
+					pose.poseIsValid = true;
+					pose.result = TrackingResult_Running_OK;
+					pose.deviceIsConnected = true;
+				}
+				else {
+					pose.poseIsValid = true;
+					pose.result = TrackingResult_Fallback_RotationOnly;
+					pose.deviceIsConnected = true;
+				}
+			}
+			else {
+				pose.poseIsValid = false;
+				pose.result = TrackingResult_Running_OutOfRange;
+				pose.deviceIsConnected = false;
+			}
+			break;
+		case LUPPERARM:
+			if (lupperarm_available) {
+				if (chest_available && lshoulder_available) {
+					pose.poseIsValid = true;
+					pose.result = TrackingResult_Running_OK;
+					pose.deviceIsConnected = true;
+				}
+				else {
+					pose.poseIsValid = true;
+					pose.result = TrackingResult_Fallback_RotationOnly;
+					pose.deviceIsConnected = true;
+				}
+			}
+			else {
+				pose.poseIsValid = false;
+				pose.result = TrackingResult_Running_OutOfRange;
+				pose.deviceIsConnected = false;
+			}
+			break;
+		case RUPPERARM:
+			if (rupperarm_available) {
+				if (chest_available && rshoulder_available) {
+					pose.poseIsValid = true;
+					pose.result = TrackingResult_Running_OK;
+					pose.deviceIsConnected = true;
+				}
+				else {
+					pose.poseIsValid = true;
+					pose.result = TrackingResult_Fallback_RotationOnly;
+					pose.deviceIsConnected = true;
+				}
 			}
 			else {
 				pose.poseIsValid = false;
@@ -226,6 +375,50 @@ DriverPose_t TrackerDriver::GetPose()
 	pose.qDriverFromHeadRotation = quat;
 
 	switch (TrackerIndex) {
+	case LFOOT:
+		if (feet_enable) {
+			pose.vecPosition[0] = bk->P_lfoot.x();
+			pose.vecPosition[1] = bk->P_lfoot.y();
+			pose.vecPosition[2] = bk->P_lfoot.z();
+
+			pose.qRotation.x = bk->Q_lfoot.x();
+			pose.qRotation.y = bk->Q_lfoot.y();
+			pose.qRotation.z = bk->Q_lfoot.z();
+			pose.qRotation.w = bk->Q_lfoot.w();
+		}
+		else {
+			pose.vecPosition[0] = bk->P_lshin.x();
+			pose.vecPosition[1] = bk->P_lshin.y();
+			pose.vecPosition[2] = bk->P_lshin.z();
+
+			pose.qRotation.x = bk->Q_lshin.x();
+			pose.qRotation.y = bk->Q_lshin.y();
+			pose.qRotation.z = bk->Q_lshin.z();
+			pose.qRotation.w = bk->Q_lshin.w();
+		}
+		break;
+	case RFOOT:
+		if (feet_enable) {
+			pose.vecPosition[0] = bk->P_rfoot.x();
+			pose.vecPosition[1] = bk->P_rfoot.y();
+			pose.vecPosition[2] = bk->P_rfoot.z();
+
+			pose.qRotation.x = bk->Q_rfoot.x();
+			pose.qRotation.y = bk->Q_rfoot.y();
+			pose.qRotation.z = bk->Q_rfoot.z();
+			pose.qRotation.w = bk->Q_rfoot.w();
+		}
+		else {
+			pose.vecPosition[0] = bk->P_rshin.x();
+			pose.vecPosition[1] = bk->P_rshin.y();
+			pose.vecPosition[2] = bk->P_rshin.z();
+
+			pose.qRotation.x = bk->Q_rshin.x();
+			pose.qRotation.y = bk->Q_rshin.y();
+			pose.qRotation.z = bk->Q_rshin.z();
+			pose.qRotation.w = bk->Q_rshin.w();
+		}
+		break;
 	case LSHIN:
 		pose.vecPosition[0] = bk->P_lshin.x();
 		pose.vecPosition[1] = bk->P_lshin.y();
@@ -285,6 +478,46 @@ DriverPose_t TrackerDriver::GetPose()
 		pose.qRotation.y = bk->Q_chest.y();
 		pose.qRotation.z = bk->Q_chest.z();
 		pose.qRotation.w = bk->Q_chest.w();
+		break;
+	case LSHOULDER:
+		pose.vecPosition[0] = bk->P_lshoulder.x();
+		pose.vecPosition[1] = bk->P_lshoulder.y();
+		pose.vecPosition[2] = bk->P_lshoulder.z();
+
+		pose.qRotation.x = bk->Q_lshoulder.x();
+		pose.qRotation.y = bk->Q_lshoulder.y();
+		pose.qRotation.z = bk->Q_lshoulder.z();
+		pose.qRotation.w = bk->Q_lshoulder.w();
+		break;
+	case RSHOULDER:
+		pose.vecPosition[0] = bk->P_rshoulder.x();
+		pose.vecPosition[1] = bk->P_rshoulder.y();
+		pose.vecPosition[2] = bk->P_rshoulder.z();
+
+		pose.qRotation.x = bk->Q_rshoulder.x();
+		pose.qRotation.y = bk->Q_rshoulder.y();
+		pose.qRotation.z = bk->Q_rshoulder.z();
+		pose.qRotation.w = bk->Q_rshoulder.w();
+		break;
+	case LUPPERARM:
+		pose.vecPosition[0] = bk->P_lupperarm.x();
+		pose.vecPosition[1] = bk->P_lupperarm.y();
+		pose.vecPosition[2] = bk->P_lupperarm.z();
+
+		pose.qRotation.x = bk->Q_lupperarm.x();
+		pose.qRotation.y = bk->Q_lupperarm.y();
+		pose.qRotation.z = bk->Q_lupperarm.z();
+		pose.qRotation.w = bk->Q_lupperarm.w();
+		break;
+	case RUPPERARM:
+		pose.vecPosition[0] = bk->P_rupperarm.x();
+		pose.vecPosition[1] = bk->P_rupperarm.y();
+		pose.vecPosition[2] = bk->P_rupperarm.z();
+
+		pose.qRotation.x = bk->Q_rupperarm.x();
+		pose.qRotation.y = bk->Q_rupperarm.y();
+		pose.qRotation.z = bk->Q_rupperarm.z();
+		pose.qRotation.w = bk->Q_rupperarm.w();
 		break;
 	}
 

@@ -7,6 +7,12 @@
 
 #endif
 
+// Main BNO08X I2C address
+uint8_t  i2c_main_addr = 0x4B;
+
+// Extended BNO08X I2C address
+uint8_t  i2c_extend_addr = 0x4A;
+
 // Brownout detector
 bool brown_en = true;
 
