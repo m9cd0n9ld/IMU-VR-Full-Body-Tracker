@@ -97,6 +97,7 @@ public:
 		chest_sensor = 0.2;
 		shoulder_sensor = 0.1;
 		upperarm_sensor = 0.15;
+		floor_offset = 0.0;
 
 		lfoot_sensor_offset = Vector2f(0, 0);
 		rfoot_sensor_offset = Vector2f(0, 0);
@@ -134,7 +135,7 @@ public:
 	}
 
 	//Set positional parameters when in T-pose (body segment length and sensor position)
-	void setParam(float shin, float thigh, float lback, float uback, float head, float shoulder, float hip_width, float shoulder_width, float foot_sensor, float shin_sensor, float thigh_sensor, float waist_sensor, float chest_sensor, float shoulder_sensor, float upperarm_sensor) {
+	void setParam(float shin, float thigh, float lback, float uback, float head, float shoulder, float hip_width, float shoulder_width, float foot_sensor, float shin_sensor, float thigh_sensor, float waist_sensor, float chest_sensor, float shoulder_sensor, float upperarm_sensor, float floor_offset) {
 		this->shin = shin;						// knee to foot segment length
 		this->thigh = thigh;					// knee to hip segment length
 		this->lback = lback;					// hip to mid back segment length
@@ -150,6 +151,7 @@ public:
 		this->chest_sensor = chest_sensor;		// mid back joint to chest sensor position
 		this->shoulder_sensor = shoulder_sensor;// body centre line to shoulder sensor position
 		this->upperarm_sensor = upperarm_sensor;// shoulder joint to upper arm sensor position
+		this->floor_offset = floor_offset;		// tracker min Y value
 	}
 
 	//Set sensor offset position when in T-pose
@@ -262,74 +264,74 @@ public:
 
 		P_lshoulder = P_midshoulder + (imu_lshoulder * Quaternionf(0, -shoulder_sensor, lshoulder_sensor_offset.coeff(1), lshoulder_sensor_offset.coeff(0)) * imu_lshoulder.inverse()).vec();
 		Q_lshoulder = imu_lshoulder;
-		if (P_lshoulder.y() < 0) {
-			P_lshoulder.y() = 0;
+		if (P_lshoulder.y() < floor_offset) {
+			P_lshoulder.y() = floor_offset;
 		}
 
 		P_rshoulder = P_midshoulder + (imu_rshoulder * Quaternionf(0, shoulder_sensor, rshoulder_sensor_offset.coeff(1), rshoulder_sensor_offset.coeff(0)) * imu_rshoulder.inverse()).vec();
 		Q_rshoulder = imu_rshoulder;
-		if (P_rshoulder.y() < 0) {
-			P_rshoulder.y() = 0;
+		if (P_rshoulder.y() < floor_offset) {
+			P_rshoulder.y() = floor_offset;
 		}
 
 		P_lupperarm = P_lshoulderjoint + (imu_lupperarm * Quaternionf(0, -upperarm_sensor, lupperarm_sensor_offset.coeff(1), lupperarm_sensor_offset.coeff(0)) * imu_lupperarm.inverse()).vec();
 		Q_lupperarm = imu_lupperarm;
-		if (P_lupperarm.y() < 0) {
-			P_lupperarm.y() = 0;
+		if (P_lupperarm.y() < floor_offset) {
+			P_lupperarm.y() = floor_offset;
 		}
 
 		P_rupperarm = P_rshoulderjoint + (imu_rupperarm * Quaternionf(0, upperarm_sensor, rupperarm_sensor_offset.coeff(1), rupperarm_sensor_offset.coeff(0)) * imu_rupperarm.inverse()).vec();
 		Q_rupperarm = imu_rupperarm;
-		if (P_rupperarm.y() < 0) {
-			P_rupperarm.y() = 0;
+		if (P_rupperarm.y() < floor_offset) {
+			P_rupperarm.y() = floor_offset;
 		}
 
 		P_chest = P_midback + (imu_chest * Quaternionf(0, chest_sensor_offset.coeff(0), chest_sensor, chest_sensor_offset.coeff(1)) * imu_chest.inverse()).vec();
 		Q_chest = imu_chest;
-		if (P_chest.y() < 0) {
-			P_chest.y() = 0;
+		if (P_chest.y() < floor_offset) {
+			P_chest.y() = floor_offset;
 		}
 
 		P_waist = P_chip + (imu_waist * Quaternionf(0, waist_sensor_offset.coeff(0), waist_sensor, waist_sensor_offset.coeff(1)) * imu_waist.inverse()).vec();
 		Q_waist = imu_waist;
-		if (P_waist.y() < 0) {
-			P_waist.y() = 0;
+		if (P_waist.y() < floor_offset) {
+			P_waist.y() = floor_offset;
 		}
 
 		P_lthigh = P_lhip + (imu_lthigh * Quaternionf(0, lthigh_sensor_offset.coeff(0), -thigh_sensor, lthigh_sensor_offset.coeff(1)) * imu_lthigh.inverse()).vec();
 		Q_lthigh = imu_lthigh;
-		if (P_lthigh.y() < 0) {
-			P_lthigh.y() = 0;
+		if (P_lthigh.y() < floor_offset) {
+			P_lthigh.y() = floor_offset;
 		}
 
 		P_rthigh = P_rhip + (imu_rthigh * Quaternionf(0, rthigh_sensor_offset.coeff(0), -thigh_sensor, rthigh_sensor_offset.coeff(1)) * imu_rthigh.inverse()).vec();
 		Q_rthigh = imu_rthigh;
-		if (P_rthigh.y() < 0) {
-			P_rthigh.y() = 0;
+		if (P_rthigh.y() < floor_offset) {
+			P_rthigh.y() = floor_offset;
 		}
 
 		P_lshin = P_lknee + (imu_lshin * Quaternionf(0, lshin_sensor_offset.coeff(0), -shin_sensor, lshin_sensor_offset.coeff(1)) * imu_lshin.inverse()).vec();
 		Q_lshin = imu_lshin;
-		if (P_lshin.y() < 0) {
-			P_lshin.y() = 0;
+		if (P_lshin.y() < floor_offset) {
+			P_lshin.y() = floor_offset;
 		}
 
 		P_rshin = P_rknee + (imu_rshin * Quaternionf(0, rshin_sensor_offset.coeff(0), -shin_sensor, rshin_sensor_offset.coeff(1)) * imu_rshin.inverse()).vec();
 		Q_rshin = imu_rshin;
-		if (P_rshin.y() < 0) {
-			P_rshin.y() = 0;
+		if (P_rshin.y() < floor_offset) {
+			P_rshin.y() = floor_offset;
 		}
 
 		P_lfoot = P_lheel + (imu_lfoot * Quaternionf(0, lfoot_sensor_offset.coeff(0), lfoot_sensor_offset.coeff(1), -foot_sensor) * imu_lfoot.inverse()).vec();
 		Q_lfoot = imu_lfoot;
-		if (P_lfoot.y() < 0) {
-			P_lfoot.y() = 0;
+		if (P_lfoot.y() < floor_offset) {
+			P_lfoot.y() = floor_offset;
 		}
 
 		P_rfoot = P_rheel + (imu_rfoot * Quaternionf(0, rfoot_sensor_offset.coeff(0), rfoot_sensor_offset.coeff(1), -foot_sensor) * imu_rfoot.inverse()).vec();
 		Q_rfoot = imu_rfoot;
-		if (P_rfoot.y() < 0) {
-			P_rfoot.y() = 0;
+		if (P_rfoot.y() < floor_offset) {
+			P_rfoot.y() = floor_offset;
 		}
 	}
 	
@@ -440,6 +442,7 @@ private:
 	float chest_sensor;
 	float shoulder_sensor;
 	float upperarm_sensor;
+	float floor_offset;
 
 	Vector2f lfoot_sensor_offset;
 	Vector2f rfoot_sensor_offset;

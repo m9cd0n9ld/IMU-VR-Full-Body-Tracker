@@ -1,11 +1,20 @@
+import os
+import sys
+def resource_path(file):
+    try:
+        directory = os.path.abspath(sys._MEIPASS)
+    except:
+        directory = os.path.abspath('.')
+    return os.path.join(directory, file)
+
 from kivy.config import Config
-Config.set('graphics', 'maxfps', '1000')
+Config.set('graphics', 'maxfps', '5000')
 Config.set('input', 'mouse', 'mouse,disable_multitouch')
 Config.set('graphics', 'width', '700')
 Config.set('graphics', 'height', '700')
 Config.set('graphics', 'minimum_width', '700')
 Config.set('graphics', 'minimum_height', '700')
-Config.set('kivy','window_icon','icon.ico')
+Config.set('kivy', 'window_icon', resource_path('icon.png'))
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.boxlayout import BoxLayout
@@ -20,8 +29,6 @@ from kivy.properties import ObjectProperty
 from kivy.core.window import Window
 import serial
 import serial.tools.list_ports
-import os
-import sys
 from configparser import ConfigParser
 import threading
 import socket
@@ -30,7 +37,7 @@ import binascii
 import time
 import math
 
-VERSION = "0.4"
+VERSION = "0.5"
 
 ROLE = ['No role',
         'Left foot',
@@ -45,13 +52,6 @@ ROLE = ['No role',
         'Right shoulder',
         'Left upper arm',
         'Right upper arm']
-
-def resource_path(file):
-    try:
-        directory = os.path.abspath(sys._MEIPASS)
-    except:
-        directory = os.path.abspath('.')
-    return os.path.join(directory, file)
 
 def battPercent(v):
     v = float(v)
@@ -267,19 +267,22 @@ class ImuFbtServer(App):
                 payload, addr = self.sock_listen.recvfrom(32)
                 if self.check_payload(payload):
                     payload = self.unwrap_payload(payload)
-                    if len(payload) == 2:
+                    if len(payload) == struct.calcsize('<BB'):
                         if payload[0] == 77:
                             extension = payload[1]
                             ip = addr[0]
                             reply = struct.pack('<BBH?', 200, 0, self.driverPort, extension)
                             self.sock_listen.sendto(self.wrap_payload(reply), (ip, serverPort))
-                    elif len(payload) == 3:
+                    elif len(payload) == struct.calcsize('<BH'):
                         if payload[0] == 87:
                             _, self.driverPort = struct.unpack('<BH', payload)
                             if not self.focused:
                                 self.set_driver_settings()
                             t_tx_driver = time.perf_counter()
-                    elif len(payload) == 12:
+                        elif payload[0] == 97:
+                            _, self.driverPort = struct.unpack('<BH', payload)
+                            self.set_init_settings()
+                    elif len(payload) == struct.calcsize('<BBBBBBBfB'):
                         mac = binascii.hexlify(payload[1:7]).decode()
                         ip = addr[0]
                         battery, extension = struct.unpack('<f?', payload[7:])
@@ -390,8 +393,9 @@ class ImuFbtServer(App):
         chest_sensor_h = float(self.root.ids.chest_sensor_h.slider.value)
         shoulder_sensor_h = float(self.root.ids.shoulder_sensor_h.slider.value)
         upperarm_sensor_h = float(self.root.ids.upperarm_sensor_h.slider.value)
-        feet_enable = self.root.ids.feet_en_check.switch.active
-        payload = bytearray(205)
+        floor_offset = float(self.root.ids.floor_offset.slider.value)
+        override_feet = self.root.ids.override_feet_en_check.switch.active
+        payload = bytearray(209)
         struct.pack_into('<3f', payload, 0, *T_lfoot_drv)
         struct.pack_into('<3f', payload, 12, *T_rfoot_drv)
         struct.pack_into('<3f', payload, 24, *T_lshin_drv)
@@ -404,7 +408,7 @@ class ImuFbtServer(App):
         struct.pack_into('<3f', payload, 108, *T_rshoulder_drv)
         struct.pack_into('<3f', payload, 120, *T_lupperarm_drv)
         struct.pack_into('<3f', payload, 132, *T_rupperarm_drv)
-        struct.pack_into('<15f', payload, 144,
+        struct.pack_into('<16f', payload, 144,
                          shin_h,
                          thigh_h,
                          lback_h,
@@ -419,8 +423,9 @@ class ImuFbtServer(App):
                          waist_sensor_h,
                          chest_sensor_h,
                          shoulder_sensor_h,
-                         upperarm_sensor_h)
-        struct.pack_into('<?', payload, 204, feet_enable)
+                         upperarm_sensor_h,
+                         floor_offset)
+        struct.pack_into('<?', payload, 208, override_feet)
         self.sock_listen.sendto(self.wrap_payload(payload), ('127.0.0.1', self.driverPort))
         
         lfoot_1 = float(self.root.ids.lfoot_o.slider1.value)
@@ -463,6 +468,24 @@ class ImuFbtServer(App):
         struct.pack_into('<2f', payload, 80, lupperarm_1, lupperarm_2)
         struct.pack_into('<2f', payload, 88, rupperarm_1, rupperarm_2)
         struct.pack_into('<2f', payload, 96, head_1, head_2)
+        self.sock_listen.sendto(self.wrap_payload(payload), ('127.0.0.1', self.driverPort))
+        
+    def set_init_settings(self):
+        feet_enable = self.root.ids.feet_en_check.switch.active
+        shin_enable = self.root.ids.shin_en_check.switch.active
+        thigh_enable = self.root.ids.thigh_en_check.switch.active
+        waist_enable = self.root.ids.waist_en_check.switch.active
+        chest_enable = self.root.ids.chest_en_check.switch.active
+        shoulder_enable = self.root.ids.shoulder_en_check.switch.active
+        upperarm_enable = self.root.ids.upperarm_en_check.switch.active
+        payload = struct.pack('<7B', 
+                              feet_enable,
+                              shin_enable,
+                              thigh_enable,
+                              waist_enable,
+                              chest_enable,
+                              shoulder_enable,
+                              upperarm_enable)
         self.sock_listen.sendto(self.wrap_payload(payload), ('127.0.0.1', self.driverPort))
 
     def on_start(self):
@@ -538,7 +561,16 @@ class ImuFbtServer(App):
             self.root.ids.chest_sensor_h.slider.value = float(config.get('parameter', 'chest_sensor_h'))
             self.root.ids.shoulder_sensor_h.slider.value = float(config.get('parameter', 'shoulder_sensor_h'))
             self.root.ids.upperarm_sensor_h.slider.value = float(config.get('parameter', 'upperarm_sensor_h'))
-            self.root.ids.feet_en_check.switch.active = int(config.get('parameter', 'feet_en_check'))
+            self.root.ids.floor_offset.slider.value = float(config.get('parameter', 'floor_offset'))
+            self.root.ids.override_feet_en_check.switch.active = int(config.get('parameter', 'override_feet_en_check'))
+            
+            self.root.ids.feet_en_check.switch.active = int(config.get('activation', 'feet_en_check'))
+            self.root.ids.shin_en_check.switch.active = int(config.get('activation', 'shin_en_check'))
+            self.root.ids.thigh_en_check.switch.active = int(config.get('activation', 'thigh_en_check'))
+            self.root.ids.waist_en_check.switch.active = int(config.get('activation', 'waist_en_check'))
+            self.root.ids.chest_en_check.switch.active = int(config.get('activation', 'chest_en_check'))
+            self.root.ids.shoulder_en_check.switch.active = int(config.get('activation', 'shoulder_en_check'))
+            self.root.ids.upperarm_en_check.switch.active = int(config.get('activation', 'upperarm_en_check'))
             
             self.root.ids.lfoot_o.slider1.value = float(config.get('offset', 'lfoot_pos_1'))
             self.root.ids.lfoot_o.slider2.value = float(config.get('offset', 'lfoot_pos_2'))
@@ -659,7 +691,17 @@ class ImuFbtServer(App):
         config.set('parameter', 'chest_sensor_h', str(self.root.ids.chest_sensor_h.slider.value))
         config.set('parameter', 'shoulder_sensor_h', str(self.root.ids.shoulder_sensor_h.slider.value))
         config.set('parameter', 'upperarm_sensor_h', str(self.root.ids.upperarm_sensor_h.slider.value))
-        config.set('parameter', 'feet_en_check', str(int(self.root.ids.feet_en_check.switch.active)))
+        config.set('parameter', 'floor_offset', str(self.root.ids.floor_offset.slider.value))
+        config.set('parameter', 'override_feet_en_check', str(int(self.root.ids.override_feet_en_check.switch.active)))
+        
+        config.add_section('activation')
+        config.set('activation', 'feet_en_check', str(int(self.root.ids.feet_en_check.switch.active)))
+        config.set('activation', 'shin_en_check', str(int(self.root.ids.shin_en_check.switch.active)))
+        config.set('activation', 'thigh_en_check', str(int(self.root.ids.thigh_en_check.switch.active)))
+        config.set('activation', 'waist_en_check', str(int(self.root.ids.waist_en_check.switch.active)))
+        config.set('activation', 'chest_en_check', str(int(self.root.ids.chest_en_check.switch.active)))
+        config.set('activation', 'shoulder_en_check', str(int(self.root.ids.shoulder_en_check.switch.active)))
+        config.set('activation', 'upperarm_en_check', str(int(self.root.ids.upperarm_en_check.switch.active)))
 
         config.add_section('offset')
         config.set('offset', 'lfoot_pos_1', str(self.root.ids.lfoot_o.slider1.value))

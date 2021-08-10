@@ -31,6 +31,8 @@
     desc: ''
     disable: False
     val: 0
+    min_val: 0
+    max_val: 1.2
     slider: slider
     spacing: 5
     size_hint_y: None
@@ -44,6 +46,8 @@
         id: slider
         size_hint_x: 0.4
         value: root.val
+        min: root.min_val
+        max: root.max_val
         disabled: root.disable
 
     DefaultLabel:
@@ -496,11 +500,57 @@ TabbedPanel:
                 DefaultLabel:
                     padding_y: 10
                     font_size: '20sp'
-                    text: '[b]Additional settings[/b]'
+                    text: '[b]SteamVR tracker device activation[/b]'
+
+                DefaultLabel:
+                    text: '*If too many tracker devices are activated in SteamVR, \nit might cause controller tracking problem in some SteamVR game/program.'
+
+                DefaultLabel:
+                    text: '**SteamVR restart is required to take effect upon changing device activation settings.'
 
                 OnOffSwitch:
                     id: feet_en_check
-                    desc: 'Enable feet tracker for precise feet tracking (Feet tracker required)\nIf disabled, lower leg tracker will be used as feet role in SteamVR'
+                    desc: 'Feet'
+
+                OnOffSwitch:
+                    id: shin_en_check
+                    desc: 'Lower leg'
+
+                OnOffSwitch:
+                    id: thigh_en_check
+                    desc: 'Thigh'
+
+                OnOffSwitch:
+                    id: waist_en_check
+                    desc: 'Waist'
+
+                OnOffSwitch:
+                    id: chest_en_check
+                    desc: 'Chest'
+
+                OnOffSwitch:
+                    id: shoulder_en_check
+                    desc: 'Shoulder'
+
+                OnOffSwitch:
+                    id: upperarm_en_check
+                    desc: 'Upper arm'
+
+                DefaultLabel:
+                    padding_y: 10
+                    font_size: '20sp'
+                    text: '[b]Additional settings[/b]'
+
+                SegmentSlider:
+                    id: floor_offset
+                    desc: 'Tracker floor level offset in meter'
+                    val: 0.0
+                    min_val: -3.0
+                    max_val: 3.0
+
+                OnOffSwitch:
+                    id: override_feet_en_check
+                    desc: 'Override feet tracker data with lower leg tracker data \n(Feet tracker device must be activated)'
 
     TabbedPanelItem:
         text: 'Offset settings'

@@ -18,10 +18,15 @@ public:
 	virtual void EnterStandby();
 	virtual void LeaveStandby();
 	void forwardKinematics();
+	void initDevice();
+	void initLoop();
 
 private:
 	bool kinematicsRun = false;
 	std::thread* kinematicsThread = NULL;
+
+	bool initRun = false;
+	std::thread* initThread = NULL;
 
 	ImuUDP* udpThread = nullptr;
 

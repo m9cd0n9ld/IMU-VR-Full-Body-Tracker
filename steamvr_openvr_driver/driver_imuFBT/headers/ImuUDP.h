@@ -90,7 +90,8 @@ private:
 		float shoulder_sensor;
 		float upperarm_sensor;
 
-		bool feet_en;
+		float floor_offset;
+		bool override_feet;
 
 		uint8_t footer;
 	});
@@ -153,11 +154,24 @@ private:
 		uint8_t footer;
 	});
 
+	PACK(struct InitSettings {
+		uint8_t header;
+		bool feet_en;
+		bool shin_en;
+		bool thigh_en;
+		bool waist_en;
+		bool chest_en;
+		bool shoulder_en;
+		bool upperarm_en;
+		uint8_t footer;
+	};)
+
 	Payload* payload;
 	PayloadSettings* payload_settings;
 	OffsetSettings* offset_settings;
 	Calibrate* calibrate;
 	Ping ping;
+	InitSettings* init_settings;
 
 	SOCKET socketS;
 	int bytes_read;
@@ -189,4 +203,6 @@ private:
 
 	std::chrono::high_resolution_clock::time_point t_end = std::chrono::high_resolution_clock::now();
 	double elapsed_time_ms;
+
+	bool initialized = false;
 };

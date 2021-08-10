@@ -88,7 +88,7 @@ DriverPose_t TrackerDriver::GetPose()
 	if (SocketActivated) {
 		switch (TrackerIndex) {
 		case LFOOT:
-			if (feet_enable) {
+			if (!override_feet) {
 				if (lfoot_available) {
 					if (lshin_available && lthigh_available && waist_available && chest_available) {
 						pose.poseIsValid = true;
@@ -128,7 +128,7 @@ DriverPose_t TrackerDriver::GetPose()
 			}
 			break;
 		case RFOOT:
-			if (feet_enable) {
+			if (!override_feet) {
 				if (rfoot_available) {
 					if (rshin_available && rthigh_available && waist_available && chest_available) {
 						pose.poseIsValid = true;
@@ -376,7 +376,7 @@ DriverPose_t TrackerDriver::GetPose()
 
 	switch (TrackerIndex) {
 	case LFOOT:
-		if (feet_enable) {
+		if (!override_feet) {
 			pose.vecPosition[0] = bk->P_lfoot.x();
 			pose.vecPosition[1] = bk->P_lfoot.y();
 			pose.vecPosition[2] = bk->P_lfoot.z();
@@ -398,7 +398,7 @@ DriverPose_t TrackerDriver::GetPose()
 		}
 		break;
 	case RFOOT:
-		if (feet_enable) {
+		if (!override_feet) {
 			pose.vecPosition[0] = bk->P_rfoot.x();
 			pose.vecPosition[1] = bk->P_rfoot.y();
 			pose.vecPosition[2] = bk->P_rfoot.z();

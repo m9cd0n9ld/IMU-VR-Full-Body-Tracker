@@ -124,6 +124,21 @@ void ImuUDP::start()
 			}
 		}
 
+		else if (bytes_read == sizeof(InitSettings)) {
+			init_settings = (InitSettings*)buff;
+			if (init_settings->header == (uint8_t)'I' && init_settings->footer == (uint8_t)'i') {
+				feet_en = init_settings->feet_en;
+				shin_en = init_settings->shin_en;
+				thigh_en = init_settings->thigh_en;
+				waist_en = init_settings->waist_en;
+				chest_en = init_settings->chest_en;
+				shoulder_en = init_settings->shoulder_en;
+				upperarm_en = init_settings->upperarm_en;
+				init_recv = true;
+				initialized = true;
+			}
+		}
+
 		else if (bytes_read == sizeof(OffsetSettings)) {
 			offset_settings = (OffsetSettings*)buff;
 			if (offset_settings->header == (uint8_t)'I' && offset_settings->footer == (uint8_t)'i') {
@@ -174,8 +189,9 @@ void ImuUDP::start()
 					payload_settings->waist_sensor,
 					payload_settings->chest_sensor,
 					payload_settings->shoulder_sensor,
-					payload_settings->upperarm_sensor);
-				feet_enable = payload_settings->feet_en;
+					payload_settings->upperarm_sensor,
+					payload_settings->floor_offset);
+				override_feet = payload_settings->override_feet;
 			}
 		}
 
@@ -194,10 +210,18 @@ void ImuUDP::start()
 
 		elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_server_last).count();
 		if (elapsed_time_ms >= 1000) {
-			ping.header = (uint8_t)'I';
-			ping.msg = 87;
-			ping.driverPort = driverPort;
-			ping.footer = (uint8_t)'i';
+			if (!initialized) {
+				ping.header = (uint8_t)'I';
+				ping.msg = 97;
+				ping.driverPort = driverPort;
+				ping.footer = (uint8_t)'i';
+			}
+			else {
+				ping.header = (uint8_t)'I';
+				ping.msg = 87;
+				ping.driverPort = driverPort;
+				ping.footer = (uint8_t)'i';
+			}
 			sendto(socketS, (char*)&ping, sizeof(ping), 0, (sockaddr*)&localT, locallenT);
 			t_server_last = std::chrono::high_resolution_clock::now();
 		}

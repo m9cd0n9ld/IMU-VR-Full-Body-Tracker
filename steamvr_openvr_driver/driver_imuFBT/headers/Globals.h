@@ -20,7 +20,7 @@
 #define LUPPERARM 11
 #define RUPPERARM 12
 
-#define DRIVER_VERSION 0.4
+#define DRIVER_VERSION 0.5
 
 extern bool SocketActivated;
 
@@ -51,7 +51,16 @@ extern bool lupperarm_available;
 extern bool rupperarm_available;
 extern bool hmd_available;
 
-extern bool feet_enable;
+extern bool init_recv;
+extern bool feet_en;
+extern bool shin_en;
+extern bool thigh_en;
+extern bool waist_en;
+extern bool chest_en;
+extern bool shoulder_en;
+extern bool upperarm_en;
+
+extern bool override_feet;
 
 extern BodyKinematics* bk;
 extern Matrix3f mat_hmd;
