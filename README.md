@@ -73,6 +73,7 @@
  18. Done!  
  <p align="middle">
  <img src="media/final_result.gif" width="60%">
+ <img src="media/feet_saber.gif" width="60%">
  <p/>
  
  19. When desktop app is closed, the settings will be saved to config file stored in **My Documents** directory. The config file will be automatically loaded on next instance.  
