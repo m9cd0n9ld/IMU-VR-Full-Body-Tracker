@@ -171,6 +171,21 @@
         size_hint_x: 0.2
         active: False
 
+<ScaleInfo@BoxLayout>:
+    desc: ''
+    val: 0
+    spacing: 5
+    size_hint_y: None
+    height: self.minimum_height * 1.5
+
+    DefaultLabel:
+        text: root.desc
+
+    DefaultLabel:
+        text: str('{:.2f} m'.format(root.val))
+        text_size: self.size
+        halign: 'left'
+
 <DefaultScroll@ScrollView>:
     effect_cls: 'ScrollEffect'
     do_scroll_x: False
@@ -324,6 +339,24 @@ TabbedPanel:
 
             DefaultVBox:
                 padding: [0, 0, 20, 20]
+
+                DefaultHBox:
+
+                    Button:
+                        size_hint_y: None
+                        height: self.texture_size[1] * 2
+                        text: 'Save settings'
+                        on_release: app.save_settings()
+
+                    Button:
+                        size_hint_y: None
+                        height: self.texture_size[1] * 2
+                        text: 'Load settings'
+                        on_release: app.load_settings()
+
+                DefaultLabel:
+                    id: save_load_text
+                    text: ' '
                 
                 DefaultLabel:
                     padding_y: 10
@@ -448,6 +481,57 @@ TabbedPanel:
                     id: shoulder_width_h
                     desc: 'Shoulder width'
                     val: 0.3
+
+                DefaultLabel:
+                    padding_y: 10
+                    font_size: '20sp'
+                    text: '[b]Body segment scaling[/b]'
+
+                SegmentSlider:
+                    id: vscale
+                    desc: 'Vertical scaling'
+                    val: 1
+                    min_val: 0
+                    max_val: 3
+
+                SegmentSlider:
+                    id: hscale
+                    desc: 'Horiontal scaling'
+                    val: 1
+                    min_val: 0
+                    max_val: 3
+
+                ScaleInfo:
+                    desc: shin_h.desc
+                    val: shin_h.slider.value * vscale.slider.value
+
+                ScaleInfo:
+                    desc: thigh_h.desc
+                    val: thigh_h.slider.value * vscale.slider.value
+
+                ScaleInfo:
+                    desc: lback_h.desc
+                    val: lback_h.slider.value * vscale.slider.value
+
+                ScaleInfo:
+                    desc: uback_h.desc
+                    val: uback_h.slider.value * vscale.slider.value
+
+                ScaleInfo:
+                    desc: head_h.desc
+                    val: head_h.slider.value * vscale.slider.value
+
+                ScaleInfo:
+                    desc: shoulder_h.desc
+                    val: shoulder_h.slider.value * vscale.slider.value
+
+                ScaleInfo:
+                    desc: hip_width_h.desc
+                    val: hip_width_h.slider.value * hscale.slider.value
+
+                ScaleInfo:
+                    desc: shoulder_width_h.desc
+                    val: shoulder_width_h.slider.value * hscale.slider.value
 
                 DefaultHBox:
                     

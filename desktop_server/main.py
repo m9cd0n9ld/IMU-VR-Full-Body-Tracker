@@ -27,6 +27,7 @@ from kivy.uix.image import Image
 from kivy.clock import Clock
 from kivy.properties import ObjectProperty
 from kivy.core.window import Window
+from plyer import filechooser
 import serial
 import serial.tools.list_ports
 from configparser import ConfigParser
@@ -37,7 +38,7 @@ import binascii
 import time
 import math
 
-VERSION = "0.5"
+VERSION = "0.6"
 
 ROLE = ['No role',
         'Left foot',
@@ -157,6 +158,23 @@ class ImuFbtServer(App):
     focused = False
     temp_focus = ''
     
+    def save_settings(self):
+        filechooser.save_file(on_selection=self.handle_save, filters=['*.ini'])
+    
+    def load_settings(self):
+        filechooser.open_file(on_selection=self.handle_load, filters=['*.ini'])
+        
+    def handle_save(self, selection):
+        if len(selection):
+            file = selection[0]
+            if file[-4:] != '.ini':
+                file += '.ini'
+            self.save(file)
+        
+    def handle_load(self, selection):
+        if len(selection):
+            self.load(selection[0])
+    
     def show_popup(self):
         show = Pop()
         size = (Window.size[1] * 0.8, Window.size[1] * 0.8)
@@ -260,7 +278,7 @@ class ImuFbtServer(App):
         self.driverPort = 0
         self.sock_listen.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock_listen.bind(('0.0.0.0', serverPort))
-        self.sock_listen.settimeout(0.1)
+        self.sock_listen.settimeout(0.5)
         t_tx_driver = time.perf_counter()
         while self.thread_run:
             try:
@@ -378,14 +396,14 @@ class ImuFbtServer(App):
         T_rupperarm_drv = [math.radians(float(self.root.ids.rupperarm_t.tx.text)),
                            math.radians(float(self.root.ids.rupperarm_t.ty.text)),
                            math.radians(float(self.root.ids.rupperarm_t.tz.text))]
-        shin_h = float(self.root.ids.shin_h.slider.value)
-        thigh_h = float(self.root.ids.thigh_h.slider.value)
-        lback_h = float(self.root.ids.lback_h.slider.value)
-        uback_h = float(self.root.ids.uback_h.slider.value)
-        head_h = float(self.root.ids.head_h.slider.value)
-        shoulder_h = float(self.root.ids.shoulder_h.slider.value)
-        hip_width_h = float(self.root.ids.hip_width_h.slider.value)
-        shoulder_width_h = float(self.root.ids.shoulder_width_h.slider.value)
+        shin_h = float(self.root.ids.shin_h.slider.value * self.root.ids.vscale.slider.value)
+        thigh_h = float(self.root.ids.thigh_h.slider.value * self.root.ids.vscale.slider.value)
+        lback_h = float(self.root.ids.lback_h.slider.value * self.root.ids.vscale.slider.value)
+        uback_h = float(self.root.ids.uback_h.slider.value * self.root.ids.vscale.slider.value)
+        head_h = float(self.root.ids.head_h.slider.value * self.root.ids.vscale.slider.value)
+        shoulder_h = float(self.root.ids.shoulder_h.slider.value * self.root.ids.vscale.slider.value)
+        hip_width_h = float(self.root.ids.hip_width_h.slider.value * self.root.ids.hscale.slider.value)
+        shoulder_width_h = float(self.root.ids.shoulder_width_h.slider.value * self.root.ids.hscale.slider.value)
         foot_sensor_h = float(self.root.ids.foot_sensor_h.slider.value)
         shin_sensor_h = float(self.root.ids.shin_sensor_h.slider.value)
         thigh_sensor_h = float(self.root.ids.thigh_sensor_h.slider.value)
@@ -487,133 +505,12 @@ class ImuFbtServer(App):
                               shoulder_enable,
                               upperarm_enable)
         self.sock_listen.sendto(self.wrap_payload(payload), ('127.0.0.1', self.driverPort))
-
-    def on_start(self):
-        self.title = 'IMU FBT Server'
         
-        self.settings_bak = os.path.join(os.path.expanduser('~'),
-                                'Documents',
-                                'imuFBT_settings_bak_{}.ini'.format(VERSION))
-        if os.path.isfile(self.settings_bak):
-            config = ConfigParser()
-            config.read(self.settings_bak)
-            
-            self.root.ids.lfoot_t.tx.text = config.get('lfoot', 'x')
-            self.root.ids.lfoot_t.ty.text = config.get('lfoot', 'y')
-            self.root.ids.lfoot_t.tz.text = config.get('lfoot', 'z')
-
-            self.root.ids.rfoot_t.tx.text = config.get('rfoot', 'x')
-            self.root.ids.rfoot_t.ty.text = config.get('rfoot', 'y')
-            self.root.ids.rfoot_t.tz.text = config.get('rfoot', 'z')
-
-            self.root.ids.lshin_t.tx.text = config.get('lshin', 'x')
-            self.root.ids.lshin_t.ty.text = config.get('lshin', 'y')
-            self.root.ids.lshin_t.tz.text = config.get('lshin', 'z')
-
-            self.root.ids.rshin_t.tx.text = config.get('rshin', 'x')
-            self.root.ids.rshin_t.ty.text = config.get('rshin', 'y')
-            self.root.ids.rshin_t.tz.text = config.get('rshin', 'z')
-
-            self.root.ids.lthigh_t.tx.text = config.get('lthigh', 'x')
-            self.root.ids.lthigh_t.ty.text = config.get('lthigh', 'y')
-            self.root.ids.lthigh_t.tz.text = config.get('lthigh', 'z')
-
-            self.root.ids.rthigh_t.tx.text = config.get('rthigh', 'x')
-            self.root.ids.rthigh_t.ty.text = config.get('rthigh', 'y')
-            self.root.ids.rthigh_t.tz.text = config.get('rthigh', 'z')
-
-            self.root.ids.waist_t.tx.text = config.get('waist', 'x')
-            self.root.ids.waist_t.ty.text = config.get('waist', 'y')
-            self.root.ids.waist_t.tz.text = config.get('waist', 'z')
-            
-            self.root.ids.chest_t.tx.text = config.get('chest', 'x')
-            self.root.ids.chest_t.ty.text = config.get('chest', 'y')
-            self.root.ids.chest_t.tz.text = config.get('chest', 'z')
-            
-            self.root.ids.lshoulder_t.tx.text = config.get('lshoulder', 'x')
-            self.root.ids.lshoulder_t.ty.text = config.get('lshoulder', 'y')
-            self.root.ids.lshoulder_t.tz.text = config.get('lshoulder', 'z')
-            
-            self.root.ids.rshoulder_t.tx.text = config.get('rshoulder', 'x')
-            self.root.ids.rshoulder_t.ty.text = config.get('rshoulder', 'y')
-            self.root.ids.rshoulder_t.tz.text = config.get('rshoulder', 'z')
-            
-            self.root.ids.lupperarm_t.tx.text = config.get('lupperarm', 'x')
-            self.root.ids.lupperarm_t.ty.text = config.get('lupperarm', 'y')
-            self.root.ids.lupperarm_t.tz.text = config.get('lupperarm', 'z')
-            
-            self.root.ids.rupperarm_t.tx.text = config.get('rupperarm', 'x')
-            self.root.ids.rupperarm_t.ty.text = config.get('rupperarm', 'y')
-            self.root.ids.rupperarm_t.tz.text = config.get('rupperarm', 'z')
-
-            self.root.ids.shin_h.slider.value = float(config.get('parameter', 'shin_h'))
-            self.root.ids.thigh_h.slider.value = float(config.get('parameter', 'thigh_h'))
-            self.root.ids.lback_h.slider.value = float(config.get('parameter', 'lback_h'))
-            self.root.ids.uback_h.slider.value = float(config.get('parameter', 'uback_h'))
-            self.root.ids.head_h.slider.value = float(config.get('parameter', 'head_h'))
-            self.root.ids.shoulder_h.slider.value = float(config.get('parameter', 'shoulder_h'))
-            self.root.ids.hip_width_h.slider.value = float(config.get('parameter', 'hip_width_h'))
-            self.root.ids.shoulder_width_h.slider.value = float(config.get('parameter', 'shoulder_width_h'))
-            self.root.ids.foot_sensor_h.slider.value = float(config.get('parameter', 'foot_sensor_h'))
-            self.root.ids.shin_sensor_h.slider.value = float(config.get('parameter', 'shin_sensor_h'))
-            self.root.ids.thigh_sensor_h.slider.value = float(config.get('parameter', 'thigh_sensor_h'))
-            self.root.ids.waist_sensor_h.slider.value = float(config.get('parameter', 'waist_sensor_h'))
-            self.root.ids.chest_sensor_h.slider.value = float(config.get('parameter', 'chest_sensor_h'))
-            self.root.ids.shoulder_sensor_h.slider.value = float(config.get('parameter', 'shoulder_sensor_h'))
-            self.root.ids.upperarm_sensor_h.slider.value = float(config.get('parameter', 'upperarm_sensor_h'))
-            self.root.ids.floor_offset.slider.value = float(config.get('parameter', 'floor_offset'))
-            self.root.ids.override_feet_en_check.switch.active = int(config.get('parameter', 'override_feet_en_check'))
-            
-            self.root.ids.feet_en_check.switch.active = int(config.get('activation', 'feet_en_check'))
-            self.root.ids.shin_en_check.switch.active = int(config.get('activation', 'shin_en_check'))
-            self.root.ids.thigh_en_check.switch.active = int(config.get('activation', 'thigh_en_check'))
-            self.root.ids.waist_en_check.switch.active = int(config.get('activation', 'waist_en_check'))
-            self.root.ids.chest_en_check.switch.active = int(config.get('activation', 'chest_en_check'))
-            self.root.ids.shoulder_en_check.switch.active = int(config.get('activation', 'shoulder_en_check'))
-            self.root.ids.upperarm_en_check.switch.active = int(config.get('activation', 'upperarm_en_check'))
-            
-            self.root.ids.lfoot_o.slider1.value = float(config.get('offset', 'lfoot_pos_1'))
-            self.root.ids.lfoot_o.slider2.value = float(config.get('offset', 'lfoot_pos_2'))
-            self.root.ids.rfoot_o.slider1.value = float(config.get('offset', 'rfoot_pos_1'))
-            self.root.ids.rfoot_o.slider2.value = float(config.get('offset', 'rfoot_pos_2'))
-            self.root.ids.lshin_o.slider1.value = float(config.get('offset', 'lshin_pos_1'))
-            self.root.ids.lshin_o.slider2.value = float(config.get('offset', 'lshin_pos_2'))
-            self.root.ids.rshin_o.slider1.value = float(config.get('offset', 'rshin_pos_1'))
-            self.root.ids.rshin_o.slider2.value = float(config.get('offset', 'rshin_pos_2'))
-            self.root.ids.lthigh_o.slider1.value = float(config.get('offset', 'lthigh_pos_1'))
-            self.root.ids.lthigh_o.slider2.value = float(config.get('offset', 'lthigh_pos_2'))
-            self.root.ids.rthigh_o.slider1.value = float(config.get('offset', 'rthigh_pos_1'))
-            self.root.ids.rthigh_o.slider2.value = float(config.get('offset', 'rthigh_pos_2'))
-            self.root.ids.waist_o.slider1.value = float(config.get('offset', 'waist_pos_1'))
-            self.root.ids.waist_o.slider2.value = float(config.get('offset', 'waist_pos_2'))
-            self.root.ids.chest_o.slider1.value = float(config.get('offset', 'chest_pos_1'))
-            self.root.ids.chest_o.slider2.value = float(config.get('offset', 'chest_pos_2'))
-            self.root.ids.lshoulder_o.slider1.value = float(config.get('offset', 'lshoulder_pos_1'))
-            self.root.ids.lshoulder_o.slider2.value = float(config.get('offset', 'lshoulder_pos_2'))
-            self.root.ids.rshoulder_o.slider1.value = float(config.get('offset', 'rshoulder_pos_1'))
-            self.root.ids.rshoulder_o.slider2.value = float(config.get('offset', 'rshoulder_pos_2'))
-            self.root.ids.lupperarm_o.slider1.value = float(config.get('offset', 'lupperarm_pos_1'))
-            self.root.ids.lupperarm_o.slider2.value = float(config.get('offset', 'lupperarm_pos_2'))
-            self.root.ids.rupperarm_o.slider1.value = float(config.get('offset', 'rupperarm_pos_1'))
-            self.root.ids.rupperarm_o.slider2.value = float(config.get('offset', 'rupperarm_pos_2'))
-            self.root.ids.head_o.slider1.value = float(config.get('offset', 'head_pos_1'))
-            self.root.ids.head_o.slider2.value = float(config.get('offset', 'head_pos_2'))
-
-            for k in config.items('devices'):
-                self.devices_list[k[0]] = k[1]
-
-        self.thread_run = True
-        self.thread_process = threading.Thread(target=self.udp, args=())
-        self.thread_process.start()
-        
-        Clock.schedule_interval(self.com_port_scanner, 1)
-
-    def on_stop(self):
-        if os.path.isfile(self.settings_bak):
-            os.remove(self.settings_bak)
-            
+    def save(self, file):        
         config = ConfigParser()
-        config.read(self.settings_bak)
+        
+        config.add_section('version')
+        config.set('version', 'version', VERSION)
         
         config.add_section('lfoot')
         config.set('lfoot', 'x', self.root.ids.lfoot_t.tx.text)
@@ -684,6 +581,8 @@ class ImuFbtServer(App):
         config.set('parameter', 'shoulder_h', str(self.root.ids.shoulder_h.slider.value))
         config.set('parameter', 'hip_width_h', str(self.root.ids.hip_width_h.slider.value))
         config.set('parameter', 'shoulder_width_h', str(self.root.ids.shoulder_width_h.slider.value))
+        config.set('parameter', 'vscale', str(self.root.ids.vscale.slider.value))
+        config.set('parameter', 'hscale', str(self.root.ids.hscale.slider.value))
         config.set('parameter', 'foot_sensor_h', str(self.root.ids.foot_sensor_h.slider.value))
         config.set('parameter', 'shin_sensor_h', str(self.root.ids.shin_sensor_h.slider.value))
         config.set('parameter', 'thigh_sensor_h', str(self.root.ids.thigh_sensor_h.slider.value))
@@ -742,9 +641,171 @@ class ImuFbtServer(App):
                 if item[1] == '':
                     config.set(section, item[0], '0')
 
-        with open(self.settings_bak, 'w') as f:
+        with open(file, 'w') as f:
             config.write(f)
             
+        filename = file.split('\\')[-1]
+        self.root.ids.save_load_text.text = '{} saved'.format(filename)
+        self.update_settings(file)
+            
+    def load(self, file):
+        if os.path.isfile(file):
+            try:
+                config = ConfigParser()
+                config.read(file)
+                
+                if config.get('version', 'version') != VERSION:
+                    raise
+                
+                self.root.ids.lfoot_t.tx.text = config.get('lfoot', 'x')
+                self.root.ids.lfoot_t.ty.text = config.get('lfoot', 'y')
+                self.root.ids.lfoot_t.tz.text = config.get('lfoot', 'z')
+
+                self.root.ids.rfoot_t.tx.text = config.get('rfoot', 'x')
+                self.root.ids.rfoot_t.ty.text = config.get('rfoot', 'y')
+                self.root.ids.rfoot_t.tz.text = config.get('rfoot', 'z')
+
+                self.root.ids.lshin_t.tx.text = config.get('lshin', 'x')
+                self.root.ids.lshin_t.ty.text = config.get('lshin', 'y')
+                self.root.ids.lshin_t.tz.text = config.get('lshin', 'z')
+
+                self.root.ids.rshin_t.tx.text = config.get('rshin', 'x')
+                self.root.ids.rshin_t.ty.text = config.get('rshin', 'y')
+                self.root.ids.rshin_t.tz.text = config.get('rshin', 'z')
+
+                self.root.ids.lthigh_t.tx.text = config.get('lthigh', 'x')
+                self.root.ids.lthigh_t.ty.text = config.get('lthigh', 'y')
+                self.root.ids.lthigh_t.tz.text = config.get('lthigh', 'z')
+
+                self.root.ids.rthigh_t.tx.text = config.get('rthigh', 'x')
+                self.root.ids.rthigh_t.ty.text = config.get('rthigh', 'y')
+                self.root.ids.rthigh_t.tz.text = config.get('rthigh', 'z')
+
+                self.root.ids.waist_t.tx.text = config.get('waist', 'x')
+                self.root.ids.waist_t.ty.text = config.get('waist', 'y')
+                self.root.ids.waist_t.tz.text = config.get('waist', 'z')
+                
+                self.root.ids.chest_t.tx.text = config.get('chest', 'x')
+                self.root.ids.chest_t.ty.text = config.get('chest', 'y')
+                self.root.ids.chest_t.tz.text = config.get('chest', 'z')
+                
+                self.root.ids.lshoulder_t.tx.text = config.get('lshoulder', 'x')
+                self.root.ids.lshoulder_t.ty.text = config.get('lshoulder', 'y')
+                self.root.ids.lshoulder_t.tz.text = config.get('lshoulder', 'z')
+                
+                self.root.ids.rshoulder_t.tx.text = config.get('rshoulder', 'x')
+                self.root.ids.rshoulder_t.ty.text = config.get('rshoulder', 'y')
+                self.root.ids.rshoulder_t.tz.text = config.get('rshoulder', 'z')
+                
+                self.root.ids.lupperarm_t.tx.text = config.get('lupperarm', 'x')
+                self.root.ids.lupperarm_t.ty.text = config.get('lupperarm', 'y')
+                self.root.ids.lupperarm_t.tz.text = config.get('lupperarm', 'z')
+                
+                self.root.ids.rupperarm_t.tx.text = config.get('rupperarm', 'x')
+                self.root.ids.rupperarm_t.ty.text = config.get('rupperarm', 'y')
+                self.root.ids.rupperarm_t.tz.text = config.get('rupperarm', 'z')
+
+                self.root.ids.shin_h.slider.value = float(config.get('parameter', 'shin_h'))
+                self.root.ids.thigh_h.slider.value = float(config.get('parameter', 'thigh_h'))
+                self.root.ids.lback_h.slider.value = float(config.get('parameter', 'lback_h'))
+                self.root.ids.uback_h.slider.value = float(config.get('parameter', 'uback_h'))
+                self.root.ids.head_h.slider.value = float(config.get('parameter', 'head_h'))
+                self.root.ids.shoulder_h.slider.value = float(config.get('parameter', 'shoulder_h'))
+                self.root.ids.hip_width_h.slider.value = float(config.get('parameter', 'hip_width_h'))
+                self.root.ids.shoulder_width_h.slider.value = float(config.get('parameter', 'shoulder_width_h'))
+                self.root.ids.vscale.slider.value = float(config.get('parameter', 'vscale'))
+                self.root.ids.hscale.slider.value = float(config.get('parameter', 'hscale'))
+                self.root.ids.foot_sensor_h.slider.value = float(config.get('parameter', 'foot_sensor_h'))
+                self.root.ids.shin_sensor_h.slider.value = float(config.get('parameter', 'shin_sensor_h'))
+                self.root.ids.thigh_sensor_h.slider.value = float(config.get('parameter', 'thigh_sensor_h'))
+                self.root.ids.waist_sensor_h.slider.value = float(config.get('parameter', 'waist_sensor_h'))
+                self.root.ids.chest_sensor_h.slider.value = float(config.get('parameter', 'chest_sensor_h'))
+                self.root.ids.shoulder_sensor_h.slider.value = float(config.get('parameter', 'shoulder_sensor_h'))
+                self.root.ids.upperarm_sensor_h.slider.value = float(config.get('parameter', 'upperarm_sensor_h'))
+                self.root.ids.floor_offset.slider.value = float(config.get('parameter', 'floor_offset'))
+                self.root.ids.override_feet_en_check.switch.active = int(config.get('parameter', 'override_feet_en_check'))
+                
+                self.root.ids.feet_en_check.switch.active = int(config.get('activation', 'feet_en_check'))
+                self.root.ids.shin_en_check.switch.active = int(config.get('activation', 'shin_en_check'))
+                self.root.ids.thigh_en_check.switch.active = int(config.get('activation', 'thigh_en_check'))
+                self.root.ids.waist_en_check.switch.active = int(config.get('activation', 'waist_en_check'))
+                self.root.ids.chest_en_check.switch.active = int(config.get('activation', 'chest_en_check'))
+                self.root.ids.shoulder_en_check.switch.active = int(config.get('activation', 'shoulder_en_check'))
+                self.root.ids.upperarm_en_check.switch.active = int(config.get('activation', 'upperarm_en_check'))
+                
+                self.root.ids.lfoot_o.slider1.value = float(config.get('offset', 'lfoot_pos_1'))
+                self.root.ids.lfoot_o.slider2.value = float(config.get('offset', 'lfoot_pos_2'))
+                self.root.ids.rfoot_o.slider1.value = float(config.get('offset', 'rfoot_pos_1'))
+                self.root.ids.rfoot_o.slider2.value = float(config.get('offset', 'rfoot_pos_2'))
+                self.root.ids.lshin_o.slider1.value = float(config.get('offset', 'lshin_pos_1'))
+                self.root.ids.lshin_o.slider2.value = float(config.get('offset', 'lshin_pos_2'))
+                self.root.ids.rshin_o.slider1.value = float(config.get('offset', 'rshin_pos_1'))
+                self.root.ids.rshin_o.slider2.value = float(config.get('offset', 'rshin_pos_2'))
+                self.root.ids.lthigh_o.slider1.value = float(config.get('offset', 'lthigh_pos_1'))
+                self.root.ids.lthigh_o.slider2.value = float(config.get('offset', 'lthigh_pos_2'))
+                self.root.ids.rthigh_o.slider1.value = float(config.get('offset', 'rthigh_pos_1'))
+                self.root.ids.rthigh_o.slider2.value = float(config.get('offset', 'rthigh_pos_2'))
+                self.root.ids.waist_o.slider1.value = float(config.get('offset', 'waist_pos_1'))
+                self.root.ids.waist_o.slider2.value = float(config.get('offset', 'waist_pos_2'))
+                self.root.ids.chest_o.slider1.value = float(config.get('offset', 'chest_pos_1'))
+                self.root.ids.chest_o.slider2.value = float(config.get('offset', 'chest_pos_2'))
+                self.root.ids.lshoulder_o.slider1.value = float(config.get('offset', 'lshoulder_pos_1'))
+                self.root.ids.lshoulder_o.slider2.value = float(config.get('offset', 'lshoulder_pos_2'))
+                self.root.ids.rshoulder_o.slider1.value = float(config.get('offset', 'rshoulder_pos_1'))
+                self.root.ids.rshoulder_o.slider2.value = float(config.get('offset', 'rshoulder_pos_2'))
+                self.root.ids.lupperarm_o.slider1.value = float(config.get('offset', 'lupperarm_pos_1'))
+                self.root.ids.lupperarm_o.slider2.value = float(config.get('offset', 'lupperarm_pos_2'))
+                self.root.ids.rupperarm_o.slider1.value = float(config.get('offset', 'rupperarm_pos_1'))
+                self.root.ids.rupperarm_o.slider2.value = float(config.get('offset', 'rupperarm_pos_2'))
+                self.root.ids.head_o.slider1.value = float(config.get('offset', 'head_pos_1'))
+                self.root.ids.head_o.slider2.value = float(config.get('offset', 'head_pos_2'))
+
+                for k in config.items('devices'):
+                    self.devices_list[k[0]] = k[1]
+                
+                filename = file.split('\\')[-1]
+                self.root.ids.save_load_text.text = '{} loaded'.format(filename)
+                self.update_settings(file)
+                
+            except:
+                self.root.ids.save_load_text.text = 'Invalid file or version'
+                
+        else:
+            self.root.ids.save_load_text.text = 'Invalid file or version'
+            
+    def update_settings(self, filepath):        
+        config = ConfigParser()
+        
+        config.add_section('last_settings')
+        config.set('last_settings', 'path', filepath)
+        
+        with open(self.settings_bak, 'w') as f:
+            config.write(f)
+
+    def on_start(self):
+        self.title = 'IMU FBT Server'
+        
+        dir_path = os.path.join(os.path.expanduser('~'),
+                                'Documents', 'imuFBT')
+        if not os.path.isdir(dir_path):
+            os.mkdir(dir_path)
+        self.settings_bak = os.path.join(dir_path, 'imuFBT_settings.cfg')
+        
+        if os.path.isfile(self.settings_bak):
+            try:
+                config = ConfigParser()
+                config.read(self.settings_bak)
+                self.load(config.get('last_settings', 'path'))
+            except:
+                pass
+        
+        self.thread_run = True
+        self.thread_process = threading.Thread(target=self.udp, args=())
+        self.thread_process.start()
+        
+        Clock.schedule_interval(self.com_port_scanner, 1)
+
+    def on_stop(self):           
         self.wifi_thread_run = False
         try:
             self.wifi_thread_process.join()
