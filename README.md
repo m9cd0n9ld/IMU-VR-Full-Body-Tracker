@@ -33,49 +33,49 @@
  6. Activate required tracker devices to be output to SteamVR. In some SteamVR game/program, the hand controllers might lose tracking or not working if too many tracker devices are activated.  
  7. Set the tracker floor level offset (tracker min Y value) if necessary.  
  8. Enable override feet tracker data with lower leg tracker data if want to use lower leg tracker as foot role. Feet tracker device must still be activated.  
+ 9. Save the settings by pressing **Save settings** button or load an existing saved settings by pressing **Load settings** button in **Settings** tab. The last saved/loaded settings will be automatically loaded in the next instance.  
  <p align="middle">
- <img src="media/desktop_app_settings_1.png" width="40%">
- <img src="media/desktop_app_settings_2.png" width="40%">
- <img src="media/desktop_app_settings_3.png" width="40%">
- <img src="media/desktop_app_offset_settings.png" width="40%">
+ <img src="media/desktop_app_settings_1.png" width="45%">
+ <img src="media/desktop_app_settings_2.png" width="45%">
+ <img src="media/desktop_app_settings_3.png" width="45%">
+ <img src="media/desktop_app_settings_4.png" width="45%">
+ <img src="media/desktop_app_offset_settings.png" width="45%">
  <p/>
  
- 9. Plug in USB cable to ESP32 and set the WiFi credential in **WiFi Settings** tab.  
+ 10. Plug in USB cable to ESP32 and set the WiFi credential in **WiFi Settings** tab.  
  <p align="middle">
  <img src="media/desktop_app_wifi_settings.png" width="40%">
  <p/>
  
- 10. Once WiFi credential is configured, unplug the USB cable and power cycle the ESP32 to establish WiFi connection.  
- 11. The trackers will be listed in both **Devices** and **Role assignment** tabs.  
- 12. Set the roles of the trackers in **Role assignment** tab.  
+ 11. Once WiFi credential is configured, unplug the USB cable and power cycle the ESP32 to establish WiFi connection.  
+ 12. The trackers will be listed in both **Devices** and **Role assignment** tabs.  
+ 13. Set the roles of the trackers in **Role assignment** tab.  
  <p align="middle">
  <img src="media/desktop_app_choose_role.png" width="40%">
  <p/>
  
- 13. Once everything is setup properly, the trackers with correct roles assignment will be shown in **Devices** tab.  
+ 14. Once everything is setup properly, the trackers with correct roles assignment will be shown in **Devices** tab.  
  <p align="middle">
  <img src="media/desktop_app_devices_list.png" width="40%">
  <p/>
  
- 14. Mount the trackers according to the following diagram. For feet/leg tracking, chest tracker, waist tracker, thigh trackers and lower leg trackers are required. Feet trackers are optional. For elbow tracking, chest tracker, shoulder trackers and upper arm trackers are required.  
+ 15. Mount the trackers according to the following diagram. For feet/leg tracking, chest tracker, waist tracker, thigh trackers and lower leg trackers are required. Feet trackers are optional. For elbow tracking, chest tracker, shoulder trackers and upper arm trackers are required.  
  <p align="middle">
  <img src="media/T-pose_skeleton_diagram.png" width="60%">
  <img src="media/tracker_kinematic_chain.png" width="60%">
  <p/>
  
- 15. Open SteamVR.  
- 16. The trackers will be shown in SteamVR environment at weird position and orientation on startup.  
- 17. Stand in T-pose**, then press **Calibrate** button in **Devices** tab to realign/calibrate the trackers.  
+ 16. Open SteamVR.  
+ 17. The trackers will be shown in SteamVR environment at weird position and orientation on startup.  
+ 18. Stand in T-pose**, then press **Calibrate** button in **Devices** tab to realign/calibrate the trackers.  
  <p align="middle">
  <img src="media/steamvr_sensors_alignment.gif" width="60%">
  <p/>
  
- 18. Done!  
+ 19. Done!  
  <p align="middle">
  <img src="media/final_result.gif" width="60%">
  <img src="media/feet_saber.gif" width="60%">
  <p/>
- 
- 19. When desktop app is closed, the settings will be saved to config file stored in **My Documents** directory. The config file will be automatically loaded on next instance.  
  
  **Stand straight look forward with feet pointing forward and hip-width apart in T-pose with palm facing down.
