@@ -25,6 +25,9 @@ const uint8_t led_pin = 19;
 // Battery voltage monitoring pin
 const uint8_t batt_monitor_pin = 35;
 
+// WiFi power saving mode
+bool wifi_power_save = true;
+
 /* 
  WIFI_POWER_19_5dBm // 19.5dBm
  WIFI_POWER_19dBm // 19dBm
@@ -40,7 +43,7 @@ const uint8_t batt_monitor_pin = 35;
  WIFI_POWER_MINUS_1dBm // -1dBm
 */
 // WiFi TX power
-wifi_power_t txPower = WIFI_POWER_5dBm;
+wifi_power_t txPower = WIFI_POWER_19_5dBm;
 
 // Battery analog reading to voltage function
 float get_battery_voltage(uint32_t milliVolt) {

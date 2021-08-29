@@ -533,6 +533,15 @@ TabbedPanel:
                     desc: shoulder_width_h.desc
                     val: shoulder_width_h.slider.value * hscale.slider.value
 
+                ScaleInfo:
+                    desc: 'Total height'
+                    val: 
+                        shin_h.slider.value * vscale.slider.value + \
+                        thigh_h.slider.value * vscale.slider.value + \
+                        lback_h.slider.value * vscale.slider.value + \
+                        uback_h.slider.value * vscale.slider.value + \
+                        head_h.slider.value * vscale.slider.value
+
                 DefaultHBox:
                     
                     DefaultLabel:

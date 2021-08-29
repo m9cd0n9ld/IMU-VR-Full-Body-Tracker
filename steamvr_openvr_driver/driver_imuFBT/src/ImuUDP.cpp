@@ -227,51 +227,51 @@ void ImuUDP::start()
 		}
 
 		elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_lfoot_last).count();
-		if (elapsed_time_ms >= 1000) {
+		if (elapsed_time_ms >= 5000) {
 			lfoot_available = false;
 		}
 		elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_rfoot_last).count();
-		if (elapsed_time_ms >= 1000) {
+		if (elapsed_time_ms >= 5000) {
 			rfoot_available = false;
 		}
 		elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_lshin_last).count();
-		if (elapsed_time_ms >= 1000) {
+		if (elapsed_time_ms >= 5000) {
 			lshin_available = false;
 		}
 		elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_rshin_last).count();
-		if (elapsed_time_ms >= 1000) {
+		if (elapsed_time_ms >= 5000) {
 			rshin_available = false;
 		}
 		elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_lthigh_last).count();
-		if (elapsed_time_ms >= 1000) {
+		if (elapsed_time_ms >= 5000) {
 			lthigh_available = false;
 		}
 		elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_rthigh_last).count();
-		if (elapsed_time_ms >= 1000) {
+		if (elapsed_time_ms >= 5000) {
 			rthigh_available = false;
 		}
 		elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_waist_last).count();
-		if (elapsed_time_ms >= 1000) {
+		if (elapsed_time_ms >= 5000) {
 			waist_available = false;
 		}
 		elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_chest_last).count();
-		if (elapsed_time_ms >= 1000) {
+		if (elapsed_time_ms >= 5000) {
 			chest_available = false;
 		}
 		elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_lshoulder_last).count();
-		if (elapsed_time_ms >= 1000) {
+		if (elapsed_time_ms >= 5000) {
 			lshoulder_available = false;
 		}
 		elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_rshoulder_last).count();
-		if (elapsed_time_ms >= 1000) {
+		if (elapsed_time_ms >= 5000) {
 			rshoulder_available = false;
 		}
 		elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_lupperarm_last).count();
-		if (elapsed_time_ms >= 1000) {
+		if (elapsed_time_ms >= 5000) {
 			lupperarm_available = false;
 		}
 		elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_rupperarm_last).count();
-		if (elapsed_time_ms >= 1000) {
+		if (elapsed_time_ms >= 5000) {
 			rupperarm_available = false;
 		}
 	}

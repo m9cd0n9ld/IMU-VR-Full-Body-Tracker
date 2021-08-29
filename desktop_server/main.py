@@ -337,11 +337,11 @@ class ImuFbtServer(App):
                         self.sock_listen.sendto(self.wrap_payload(reply), (ip, serverPort))                        
             except socket.timeout:
                 pass
-            if time.perf_counter() - t_tx_driver >= 3:
+            if time.perf_counter() - t_tx_driver >= 5:
                 self.driverPort = 0
             to_del = []
             for k, v in self.devices_online.items():
-                if time.perf_counter() - v >= 3:
+                if time.perf_counter() - v >= 5:
                     to_del.append(k)
             for k in to_del:
                 del self.devices_online[k]

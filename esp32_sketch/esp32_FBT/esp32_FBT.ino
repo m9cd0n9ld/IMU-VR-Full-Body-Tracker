@@ -62,9 +62,10 @@ struct __attribute__((packed)) Payload {
   uint8_t footer = (uint8_t)'i';
 } payload;
 
-uint32_t broadcast_delay = random(3000, 5001);
 uint32_t start_broadcast_time;
 uint32_t start_tx_time;
+uint32_t last_main_imu;
+uint32_t last_extend_imu;
 uint32_t recv_watchdog;
 uint32_t t_blink;
 uint8_t led_state = 0;
@@ -74,6 +75,9 @@ bool extended_imu_found = false;
 
 uint8_t main_id = 0;
 uint8_t extended_id = 0;
+
+bool start_stream_main = false;
+bool start_stream_extend = false;
 
 float battery_voltage() {
   return get_battery_voltage(analogReadMilliVolts(batt_monitor_pin));
@@ -124,15 +128,20 @@ void setup(){
   
   WiFi.onEvent(WiFiEvent);
   WiFi.begin();
+  WiFi.setSleep(wifi_power_save);
   WiFi.setTxPower(txPower);
 
   pinMode(reset_pin, OUTPUT);
   digitalWrite(reset_pin, HIGH);
   reset_imu();
   Wire.begin();
+  uint32_t imu_init_time = millis();
   while (!myIMU.begin(i2c_main_addr)) {
     reset_imu();
     delay(500);
+    if (millis() - imu_init_time >= 3000) {
+      ESP.deepSleep(1000);
+    }
   }
   Wire.setClock(400000);
   myIMU.enableARVRStabilizedRotationVector(10);
@@ -153,6 +162,8 @@ void setup(){
   t_blink = millis();
   start_broadcast_time = millis();
   start_tx_time = millis();
+  last_main_imu = millis();
+  last_extend_imu = millis();
   recv_watchdog = millis();
 
   if (!brown_en) {
@@ -187,17 +198,29 @@ void loop(){
         udpAddress = udp.remoteIP();
         if (ack.extended) {
           extended_id = ack.id;
+          if (extended_id == 0) {
+            start_stream_extend = false;
+          }
         }
         else {
           main_id = ack.id;
+          if (main_id == 0) {
+            start_stream_main = false;
+          }
         }
         driverPort = ack.driverPort;
+        if (driverPort == 0) {
+          start_stream_main = false;
+          start_stream_extend = false;
+        }
         recv_watchdog = millis();
       }
     }
     
     if (udpAddress != IPAddress(0, 0, 0, 0)) {
+      
       if (myIMU.dataAvailable() && main_id != 0  && driverPort != 0) {
+        start_stream_main = true;
         payload.id = main_id;
         payload.x = myIMU.getQuatI();
         payload.y = myIMU.getQuatJ();
@@ -206,7 +229,9 @@ void loop(){
 
         udp.beginPacket(udpAddress,driverPort);
         udp.write((uint8_t*)&payload, sizeof(payload));
-        udp.endPacket();
+        if (udp.endPacket()) {
+          last_main_imu = millis();
+        }
         DEBUG_PRINT.print("main,");
         DEBUG_PRINT.print(payload.id);
         DEBUG_PRINT.print(",");
@@ -221,6 +246,7 @@ void loop(){
       }
 
       if (extended_imu_found && myIMU2.dataAvailable() && extended_id != 0  && driverPort != 0) {
+        start_stream_extend = true;
         payload.id = extended_id;
         payload.x = myIMU2.getQuatI();
         payload.y = myIMU2.getQuatJ();
@@ -229,7 +255,9 @@ void loop(){
 
         udp.beginPacket(udpAddress,driverPort);
         udp.write((uint8_t*)&payload, sizeof(payload));
-        udp.endPacket();
+        if (udp.endPacket()) {
+          last_extend_imu = millis();
+        }
         DEBUG_PRINT.print("extended,");
         DEBUG_PRINT.print(payload.id);
         DEBUG_PRINT.print(",");
@@ -261,11 +289,24 @@ void loop(){
         DEBUG_PRINT.println(ping.batt);
         start_tx_time = millis();
       }
+
+      if (start_stream_main) {
+        if (millis() - last_main_imu >= 500) {
+          ESP.deepSleep(1000);
+        }
+      }
+
+      if (start_stream_extend) {
+        if (millis() - last_extend_imu >= 500) {
+          ESP.deepSleep(1000);
+        }
+      }
+                  
       blink_led(5000);
     }
     
     else {
-      if (millis() - start_broadcast_time >= broadcast_delay) {
+      if (millis() - start_broadcast_time >= 1000) {
         pingbroad.extended = false;
         Audp.broadcastTo((uint8_t*)&pingbroad, sizeof(pingbroad), serverPort);
         if (extended_imu_found) {
@@ -274,7 +315,6 @@ void loop(){
         }
         DEBUG_PRINT.println("Pinged");
         start_broadcast_time = millis();
-        broadcast_delay = random(3000, 5001);
       } 
       blink_led(2000);
     }
@@ -282,9 +322,11 @@ void loop(){
   else {
     blink_led(1000);
   }
-  if (millis() - recv_watchdog >= 3000) {
+  if (millis() - recv_watchdog >= 5000) {
     udpAddress = IPAddress(0, 0, 0, 0);
     driverPort = 0;
+    start_stream_main = false;
+    start_stream_extend = false;
   }
 }
 
@@ -293,6 +335,7 @@ void connectToWiFi(const char * ssid, const char * pwd){
   WiFi.disconnect(true);
   WiFi.onEvent(WiFiEvent);
   WiFi.begin(ssid, pwd);
+  WiFi.setSleep(wifi_power_save);
   WiFi.setTxPower(txPower);
   DEBUG_PRINT.println("Waiting for WIFI connection...");
 }

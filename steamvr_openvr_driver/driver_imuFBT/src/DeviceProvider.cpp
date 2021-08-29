@@ -204,7 +204,7 @@ void DeviceProvider::forwardKinematics() {
 
 		t_end = std::chrono::high_resolution_clock::now();
 		elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_hmd_last).count();
-		if (elapsed_time_ms >= 1000) {
+		if (elapsed_time_ms >= 5000) {
 			hmd_available = false;
 		}
 
