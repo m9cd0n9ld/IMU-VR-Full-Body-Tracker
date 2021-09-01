@@ -12,14 +12,31 @@ public:
 
 private:
 	void start();
+	float map(float x, float in_min, float in_max, float out_min, float out_max);
+	void setValue(uint8_t id, float x, float y, float z, float w);
+
+	PACK(struct PayloadExt {
+		uint8_t header;
+		uint8_t id;
+		int16_t x;
+		int16_t y;
+		int16_t z;
+		int16_t w;
+		uint8_t id_ext;
+		int16_t x_ext;
+		int16_t y_ext;
+		int16_t z_ext;
+		int16_t w_ext;
+		uint8_t footer;
+	});
 
 	PACK(struct Payload {
 		uint8_t header;
 		uint8_t id;
-		float x;
-		float y;
-		float z;
-		float w;
+		int16_t x;
+		int16_t y;
+		int16_t z;
+		int16_t w;
 		uint8_t footer;
 	});
 
@@ -166,6 +183,7 @@ private:
 		uint8_t footer;
 	};)
 
+	PayloadExt* payloadext;
 	Payload* payload;
 	PayloadSettings* payload_settings;
 	OffsetSettings* offset_settings;

@@ -25,13 +25,13 @@ AsyncUDP Audp;
 struct __attribute__((packed)) PingBroad {
   uint8_t header = (uint8_t)'I';
   uint8_t id = 77;
-  bool extended = false;
   uint8_t footer = (uint8_t)'i';
 } pingbroad;
 
 struct __attribute__((packed)) Ping {
   uint8_t header = (uint8_t)'I';
   uint8_t id = 0;
+  uint8_t id_ext = 0;
   uint8_t a;
   uint8_t b;
   uint8_t c;
@@ -39,7 +39,7 @@ struct __attribute__((packed)) Ping {
   uint8_t e;
   uint8_t f;
   float batt = 0;
-  bool extended = false;
+  bool extend = false;
   uint8_t footer = (uint8_t)'i';
 } ping;
 
@@ -47,25 +47,41 @@ struct __attribute__((packed)) Ack {
   uint8_t header;
   uint8_t reply;
   uint8_t id;
+  uint8_t id_ext;
   uint16_t driverPort;
-  bool extended;
   uint8_t footer;
 } ack;
+
+struct __attribute__((packed)) PayloadExt {
+  uint8_t header = (uint8_t)'I';
+  uint8_t id = 0;
+  int16_t x = 0;
+  int16_t y = 0;
+  int16_t z = 0;
+  int16_t w = 32767;
+  uint8_t id_ext = 0;
+  int16_t x_ext = 0;
+  int16_t y_ext = 0;
+  int16_t z_ext = 0;
+  int16_t w_ext = 32767;
+  uint8_t footer = (uint8_t)'i';
+} payloadext;
 
 struct __attribute__((packed)) Payload {
   uint8_t header = (uint8_t)'I';
   uint8_t id = 0;
-  float x = 0;
-  float y = 0;
-  float z = 0;
-  float w = 1;
+  int16_t x = 0;
+  int16_t y = 0;
+  int16_t z = 0;
+  int16_t w = 32767;
   uint8_t footer = (uint8_t)'i';
 } payload;
 
-uint32_t start_broadcast_time;
-uint32_t start_tx_time;
-uint32_t last_main_imu;
-uint32_t last_extend_imu;
+uint32_t last_broadcast;
+uint32_t last_ping;
+uint32_t last_main_imu_check;
+uint32_t last_extend_imu_check;
+uint32_t last_udp_check;
 uint32_t recv_watchdog;
 uint32_t t_blink;
 uint8_t led_state = 0;
@@ -78,6 +94,7 @@ uint8_t extended_id = 0;
 
 bool start_stream_main = false;
 bool start_stream_extend = false;
+bool start_stream_udp = false;
 
 float battery_voltage() {
   return get_battery_voltage(analogReadMilliVolts(batt_monitor_pin));
@@ -105,6 +122,51 @@ void blink_led(uint16_t interval) {
       digitalWrite(led_pin, led_state);
       t_blink = millis();
     }
+  }
+}
+
+int16_t map(float x, float in_min = -1, float in_max = 1, float out_min = -32767, float out_max = 32767) {
+  return (int16_t)((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min);
+}
+
+void sendUDP(bool extend) {
+  if ((driverPort != 0) && ((main_id != 0) || (extended_id != 0))) {
+    start_stream_udp = true;
+    udp.beginPacket(udpAddress, driverPort);
+    if (extend) {
+      udp.write((uint8_t*)&payloadext, sizeof(payloadext));
+    }
+    else {
+      udp.write((uint8_t*)&payload, sizeof(payload));
+    }
+    
+    if (udp.endPacket()) {
+      last_udp_check = millis();
+    }
+
+    DEBUG_PRINT.print("main,");
+    DEBUG_PRINT.print(payload.id);
+    DEBUG_PRINT.print(",");
+    DEBUG_PRINT.print(payload.x);
+    DEBUG_PRINT.print(",");
+    DEBUG_PRINT.print(payload.y);
+    DEBUG_PRINT.print(",");
+    DEBUG_PRINT.print(payload.z);
+    DEBUG_PRINT.print(",");
+    DEBUG_PRINT.print(payload.w);
+    DEBUG_PRINT.println();
+
+    DEBUG_PRINT.print("extended,");
+    DEBUG_PRINT.print(payloadext.id_ext);
+    DEBUG_PRINT.print(",");
+    DEBUG_PRINT.print(payloadext.x_ext);
+    DEBUG_PRINT.print(",");
+    DEBUG_PRINT.print(payloadext.y_ext);
+    DEBUG_PRINT.print(",");
+    DEBUG_PRINT.print(payloadext.z_ext);
+    DEBUG_PRINT.print(",");
+    DEBUG_PRINT.print(payloadext.w_ext);
+    DEBUG_PRINT.println();
   }
 }
 
@@ -150,20 +212,23 @@ void setup(){
   if (myIMU2.begin(i2c_extend_addr)) {
     myIMU2.enableARVRStabilizedRotationVector(10);
     extended_imu_found = true;
+    ping.extend = true;
     DEBUG_PRINT.println("AR VR Stabilized Rotation Vector enabled on extended IMU");
   }
   else {
     extended_imu_found = false;
+    ping.extend = false;
     DEBUG_PRINT.println("Extended IMU not found");
   }
 
   pinMode(led_pin, OUTPUT);
   
   t_blink = millis();
-  start_broadcast_time = millis();
-  start_tx_time = millis();
-  last_main_imu = millis();
-  last_extend_imu = millis();
+  last_broadcast = millis();
+  last_ping = millis();
+  last_main_imu_check = millis();
+  last_extend_imu_check = millis();
+  last_udp_check = millis();
   recv_watchdog = millis();
 
   if (!brown_en) {
@@ -195,109 +260,83 @@ void loop(){
     udp.parsePacket();
     if (udp.read((uint8_t*)&ack, sizeof(ack)) > 0) {
       if (ack.reply == 200 && ack.header == (uint8_t)'I' && ack.footer == (uint8_t)'i') {
+        recv_watchdog = millis();
         udpAddress = udp.remoteIP();
-        if (ack.extended) {
-          extended_id = ack.id;
-          if (extended_id == 0) {
-            start_stream_extend = false;
-          }
+        main_id = ack.id;
+        if (main_id == 0) {
+          start_stream_main = false;
         }
-        else {
-          main_id = ack.id;
-          if (main_id == 0) {
-            start_stream_main = false;
-          }
+        extended_id = ack.id_ext;
+        if (extended_id == 0) {
+          start_stream_extend = false;
+        }
+        if ((main_id == 0) && (extended_id == 0)) {
+          start_stream_udp = false;
         }
         driverPort = ack.driverPort;
         if (driverPort == 0) {
           start_stream_main = false;
           start_stream_extend = false;
+          start_stream_udp = false;
         }
-        recv_watchdog = millis();
       }
     }
     
     if (udpAddress != IPAddress(0, 0, 0, 0)) {
       
-      if (myIMU.dataAvailable() && main_id != 0  && driverPort != 0) {
+      if (myIMU.dataAvailable()) {
+        last_main_imu_check = millis();
         start_stream_main = true;
         payload.id = main_id;
-        payload.x = myIMU.getQuatI();
-        payload.y = myIMU.getQuatJ();
-        payload.z = myIMU.getQuatK();
-        payload.w = myIMU.getQuatReal();
+        payload.x = map(myIMU.getQuatI());
+        payload.y = map(myIMU.getQuatJ());
+        payload.z = map(myIMU.getQuatK());
+        payload.w = map(myIMU.getQuatReal());
 
-        udp.beginPacket(udpAddress,driverPort);
-        udp.write((uint8_t*)&payload, sizeof(payload));
-        if (udp.endPacket()) {
-          last_main_imu = millis();
-        }
-        DEBUG_PRINT.print("main,");
-        DEBUG_PRINT.print(payload.id);
-        DEBUG_PRINT.print(",");
-        DEBUG_PRINT.print(payload.x);
-        DEBUG_PRINT.print(",");
-        DEBUG_PRINT.print(payload.y);
-        DEBUG_PRINT.print(",");
-        DEBUG_PRINT.print(payload.z);
-        DEBUG_PRINT.print(",");
-        DEBUG_PRINT.print(payload.w);
-        DEBUG_PRINT.println();
+        payloadext.id = main_id;
+        payloadext.x = map(myIMU.getQuatI());
+        payloadext.y = map(myIMU.getQuatJ());
+        payloadext.z = map(myIMU.getQuatK());
+        payloadext.w = map(myIMU.getQuatReal());
+
+        sendUDP(extended_imu_found);
       }
 
-      if (extended_imu_found && myIMU2.dataAvailable() && extended_id != 0  && driverPort != 0) {
+      if (extended_imu_found && myIMU2.dataAvailable()) {
+        last_extend_imu_check = millis();
         start_stream_extend = true;
-        payload.id = extended_id;
-        payload.x = myIMU2.getQuatI();
-        payload.y = myIMU2.getQuatJ();
-        payload.z = myIMU2.getQuatK();
-        payload.w = myIMU2.getQuatReal();
-
-        udp.beginPacket(udpAddress,driverPort);
-        udp.write((uint8_t*)&payload, sizeof(payload));
-        if (udp.endPacket()) {
-          last_extend_imu = millis();
-        }
-        DEBUG_PRINT.print("extended,");
-        DEBUG_PRINT.print(payload.id);
-        DEBUG_PRINT.print(",");
-        DEBUG_PRINT.print(payload.x);
-        DEBUG_PRINT.print(",");
-        DEBUG_PRINT.print(payload.y);
-        DEBUG_PRINT.print(",");
-        DEBUG_PRINT.print(payload.z);
-        DEBUG_PRINT.print(",");
-        DEBUG_PRINT.print(payload.w);
-        DEBUG_PRINT.println();
+        payloadext.id_ext = extended_id;
+        payloadext.x_ext = map(myIMU2.getQuatI());
+        payloadext.y_ext = map(myIMU2.getQuatJ());
+        payloadext.z_ext = map(myIMU2.getQuatK());
+        payloadext.w_ext = map(myIMU2.getQuatReal());
       }
 
-      if (millis() - start_tx_time >= 1000) {
+      if (millis() - last_ping >= 1000) {
+        last_ping = millis();
         ping.id = main_id;
-        ping.extended = false;
+        ping.id_ext = extended_id;
         ping.batt = battery_voltage();
         udp.beginPacket(udpAddress,serverPort);
         udp.write((uint8_t*)&ping, sizeof(ping));
         udp.endPacket();
-        if (extended_imu_found) {
-           ping.id = extended_id;
-           ping.extended = true;
-           ping.batt = battery_voltage();
-           udp.beginPacket(udpAddress,serverPort);
-           udp.write((uint8_t*)&ping, sizeof(ping));
-           udp.endPacket();
-        }
         DEBUG_PRINT.println(ping.batt);
-        start_tx_time = millis();
       }
 
       if (start_stream_main) {
-        if (millis() - last_main_imu >= 500) {
+        if (millis() - last_main_imu_check >= 500) {
           ESP.deepSleep(1000);
         }
       }
 
       if (start_stream_extend) {
-        if (millis() - last_extend_imu >= 500) {
+        if (millis() - last_extend_imu_check >= 500) {
+          ESP.deepSleep(1000);
+        }
+      }
+
+      if (start_stream_udp) {
+        if (millis() - last_udp_check >= 500) {
           ESP.deepSleep(1000);
         }
       }
@@ -306,15 +345,10 @@ void loop(){
     }
     
     else {
-      if (millis() - start_broadcast_time >= 1000) {
-        pingbroad.extended = false;
+      if (millis() - last_broadcast >= 1000) {
+        last_broadcast = millis();
         Audp.broadcastTo((uint8_t*)&pingbroad, sizeof(pingbroad), serverPort);
-        if (extended_imu_found) {
-          pingbroad.extended = true;
-          Audp.broadcastTo((uint8_t*)&pingbroad, sizeof(pingbroad), serverPort);
-        }
         DEBUG_PRINT.println("Pinged");
-        start_broadcast_time = millis();
       } 
       blink_led(2000);
     }
@@ -327,6 +361,7 @@ void loop(){
     driverPort = 0;
     start_stream_main = false;
     start_stream_extend = false;
+    start_stream_udp = false;
   }
 }
 

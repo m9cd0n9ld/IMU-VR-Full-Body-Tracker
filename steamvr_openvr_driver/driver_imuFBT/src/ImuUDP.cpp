@@ -50,77 +50,93 @@ void ImuUDP::init() {
 	}
 }
 
+float ImuUDP::map(float x, float in_min = -32767, float in_max = 32767, float out_min = -1, float out_max = 1) {
+	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
+void ImuUDP::setValue(uint8_t id, float x, float y, float z, float w) {
+	switch (id) {
+	case LFOOT:
+		imu_lfoot = Quaternionf(w, x, y, z);
+		t_lfoot_last = std::chrono::high_resolution_clock::now();
+		lfoot_available = true;
+		break;
+	case RFOOT:
+		imu_rfoot = Quaternionf(w, x, y, z);
+		t_rfoot_last = std::chrono::high_resolution_clock::now();
+		rfoot_available = true;
+		break;
+	case LSHIN:
+		imu_lshin = Quaternionf(w, x, y, z);
+		t_lshin_last = std::chrono::high_resolution_clock::now();
+		lshin_available = true;
+		break;
+	case RSHIN:
+		imu_rshin = Quaternionf(w, x, y, z);
+		t_rshin_last = std::chrono::high_resolution_clock::now();
+		rshin_available = true;
+		break;
+	case LTHIGH:
+		imu_lthigh = Quaternionf(w, x, y, z);
+		t_lthigh_last = std::chrono::high_resolution_clock::now();
+		lthigh_available = true;
+		break;
+	case RTHIGH:
+		imu_rthigh = Quaternionf(w, x, y, z);
+		t_rthigh_last = std::chrono::high_resolution_clock::now();
+		rthigh_available = true;
+		break;
+	case WAIST:
+		imu_waist = Quaternionf(w, x, y, z);
+		t_waist_last = std::chrono::high_resolution_clock::now();
+		waist_available = true;
+		break;
+	case CHEST:
+		imu_chest = Quaternionf(w, x, y, z);
+		t_chest_last = std::chrono::high_resolution_clock::now();
+		chest_available = true;
+		break;
+	case LSHOULDER:
+		imu_lshoulder = Quaternionf(w, x, y, z);
+		t_lshoulder_last = std::chrono::high_resolution_clock::now();
+		lshoulder_available = true;
+		break;
+	case RSHOULDER:
+		imu_rshoulder = Quaternionf(w, x, y, z);
+		t_rshoulder_last = std::chrono::high_resolution_clock::now();
+		rshoulder_available = true;
+		break;
+	case LUPPERARM:
+		imu_lupperarm = Quaternionf(w, x, y, z);
+		t_lupperarm_last = std::chrono::high_resolution_clock::now();
+		lupperarm_available = true;
+		break;
+	case RUPPERARM:
+		imu_rupperarm = Quaternionf(w, x, y, z);
+		t_rupperarm_last = std::chrono::high_resolution_clock::now();
+		rupperarm_available = true;
+		break;
+	}
+}
+
 void ImuUDP::start()
 {
 	while (SocketActivated) {
 		memset(buff, 0, sizeof(buff));
 		bytes_read = recvfrom(socketS, buff, sizeof(buff), 0, (sockaddr*)&local, &locallen);
 
-		if (bytes_read == sizeof(Payload)) {
+		if (bytes_read == sizeof(PayloadExt)) {
+			payloadext = (PayloadExt*)buff;
+			if (payloadext->header == (uint8_t)'I' && payloadext->footer == (uint8_t)'i') {
+				setValue(payloadext->id, map(payloadext->x), map(payloadext->y), map(payloadext->z), map(payloadext->w));
+				setValue(payloadext->id_ext, map(payloadext->x_ext), map(payloadext->y_ext), map(payloadext->z_ext), map(payloadext->w_ext));
+			}
+		}
+
+		else if (bytes_read == sizeof(Payload)) {
 			payload = (Payload*)buff;
 			if (payload->header == (uint8_t)'I' && payload->footer == (uint8_t)'i') {
-				switch (payload->id) {
-				case LFOOT:
-					imu_lfoot = Quaternionf(payload->w, payload->x, payload->y, payload->z);
-					t_lfoot_last = std::chrono::high_resolution_clock::now();
-					lfoot_available = true;
-					break;
-				case RFOOT:
-					imu_rfoot = Quaternionf(payload->w, payload->x, payload->y, payload->z);
-					t_rfoot_last = std::chrono::high_resolution_clock::now();
-					rfoot_available = true;
-					break;
-				case LSHIN:
-					imu_lshin = Quaternionf(payload->w, payload->x, payload->y, payload->z);
-					t_lshin_last = std::chrono::high_resolution_clock::now();
-					lshin_available = true;
-					break;
-				case RSHIN:
-					imu_rshin = Quaternionf(payload->w, payload->x, payload->y, payload->z);
-					t_rshin_last = std::chrono::high_resolution_clock::now();
-					rshin_available = true;
-					break;
-				case LTHIGH:
-					imu_lthigh = Quaternionf(payload->w, payload->x, payload->y, payload->z);
-					t_lthigh_last = std::chrono::high_resolution_clock::now();
-					lthigh_available = true;
-					break;
-				case RTHIGH:
-					imu_rthigh = Quaternionf(payload->w, payload->x, payload->y, payload->z);
-					t_rthigh_last = std::chrono::high_resolution_clock::now();
-					rthigh_available = true;
-					break;
-				case WAIST:
-					imu_waist = Quaternionf(payload->w, payload->x, payload->y, payload->z);
-					t_waist_last = std::chrono::high_resolution_clock::now();
-					waist_available = true;
-					break;
-				case CHEST:
-					imu_chest = Quaternionf(payload->w, payload->x, payload->y, payload->z);
-					t_chest_last = std::chrono::high_resolution_clock::now();
-					chest_available = true;
-					break;
-				case LSHOULDER:
-					imu_lshoulder = Quaternionf(payload->w, payload->x, payload->y, payload->z);
-					t_lshoulder_last = std::chrono::high_resolution_clock::now();
-					lshoulder_available = true;
-					break;
-				case RSHOULDER:
-					imu_rshoulder = Quaternionf(payload->w, payload->x, payload->y, payload->z);
-					t_rshoulder_last = std::chrono::high_resolution_clock::now();
-					rshoulder_available = true;
-					break;
-				case LUPPERARM:
-					imu_lupperarm = Quaternionf(payload->w, payload->x, payload->y, payload->z);
-					t_lupperarm_last = std::chrono::high_resolution_clock::now();
-					lupperarm_available = true;
-					break;
-				case RUPPERARM:
-					imu_rupperarm = Quaternionf(payload->w, payload->x, payload->y, payload->z);
-					t_rupperarm_last = std::chrono::high_resolution_clock::now();
-					rupperarm_available = true;
-					break;
-				}
+				setValue(payload->id, map(payload->x), map(payload->y), map(payload->z), map(payload->w));
 			}
 		}
 

@@ -285,11 +285,10 @@ class ImuFbtServer(App):
                 payload, addr = self.sock_listen.recvfrom(32)
                 if self.check_payload(payload):
                     payload = self.unwrap_payload(payload)
-                    if len(payload) == struct.calcsize('<BB'):
+                    if len(payload) == struct.calcsize('<B'):
                         if payload[0] == 77:
-                            extension = payload[1]
                             ip = addr[0]
-                            reply = struct.pack('<BBH?', 200, 0, self.driverPort, extension)
+                            reply = struct.pack('<BBBH', 200, 0, 0, self.driverPort)
                             self.sock_listen.sendto(self.wrap_payload(reply), (ip, serverPort))
                     elif len(payload) == struct.calcsize('<BH'):
                         if payload[0] == 87:
@@ -300,41 +299,47 @@ class ImuFbtServer(App):
                         elif payload[0] == 97:
                             _, self.driverPort = struct.unpack('<BH', payload)
                             self.set_init_settings()
-                    elif len(payload) == struct.calcsize('<BBBBBBBfB'):
-                        mac = binascii.hexlify(payload[1:7]).decode()
+                    elif len(payload) == struct.calcsize('<BBBBBBBBf?'):
+                        mac = binascii.hexlify(payload[2:8]).decode()
                         ip = addr[0]
-                        battery, extension = struct.unpack('<f?', payload[7:])
+                        battery, extend = struct.unpack('<f?', payload[8:])
                         battery = '{:.2f}'.format(battery)
-                        role = ROLE[payload[0]]
-                        if extension:
-                            mac = mac + '_extend'
+                        roles = [ROLE[payload[0]], ROLE[payload[1]]]
+                        macs = [mac + '_main', mac + '_extend']
+                        roles_reply = [0, 0]
+                        if extend:
+                            for_length = 2
                         else:
-                            mac = mac + '_main'
-                        self.devices_online[mac] = time.perf_counter()
-                        if mac + '_list' not in self.root.ids.keys():
-                            DeviceList_widget = DeviceList(mac, ip, battery, role)
-                            self.root.ids.stack_list.add_widget(DeviceList_widget)
-                            self.root.ids[mac + '_list'] = DeviceList_widget
-                        else:
-                            self.root.ids[mac + '_list_mac'].text = str(mac)
-                            self.root.ids[mac + '_list_ip'].text = str(ip)
-                            self.root.ids[mac + '_list_battery'].text = str(battery)
-                            self.root.ids[mac + '_list_percent'].text = str(battPercent(battery))
-                            self.root.ids[mac + '_list_role'].text = str(role)
-                        if mac + '_role' not in self.root.ids.keys():
-                            if mac in self.devices_list.keys():
-                                role = self.devices_list[mac]
+                            for_length = 1
+                        for i in range(for_length):
+                            role = roles[i]
+                            mac = macs[i]
+                            self.devices_online[mac] = time.perf_counter()
+                            if mac + '_list' not in self.root.ids.keys():
+                                DeviceList_widget = DeviceList(mac, ip, battery, role)
+                                self.root.ids.stack_list.add_widget(DeviceList_widget)
+                                self.root.ids[mac + '_list'] = DeviceList_widget
                             else:
-                                role = ROLE[0]
-                                self.devices_list[mac] = role
-                            RoleList_widget = RoleList(mac, ip, role)
-                            self.root.ids.stack_role.add_widget(RoleList_widget)
-                            self.root.ids[mac + '_role'] = RoleList_widget
-                        else:
-                            self.root.ids[mac + '_role_mac'].text = str(mac)
-                            self.root.ids[mac + '_role_ip'].text = str(ip)
-                        reply = struct.pack('<BBH?', 200, ROLE.index(self.devices_list[mac]), self.driverPort, extension)
-                        self.sock_listen.sendto(self.wrap_payload(reply), (ip, serverPort))                        
+                                self.root.ids[mac + '_list_mac'].text = str(mac)
+                                self.root.ids[mac + '_list_ip'].text = str(ip)
+                                self.root.ids[mac + '_list_battery'].text = str(battery)
+                                self.root.ids[mac + '_list_percent'].text = str(battPercent(battery))
+                                self.root.ids[mac + '_list_role'].text = str(role)
+                            if mac + '_role' not in self.root.ids.keys():
+                                if mac in self.devices_list.keys():
+                                    role = self.devices_list[mac]
+                                else:
+                                    role = ROLE[0]
+                                    self.devices_list[mac] = role
+                                RoleList_widget = RoleList(mac, ip, role)
+                                self.root.ids.stack_role.add_widget(RoleList_widget)
+                                self.root.ids[mac + '_role'] = RoleList_widget
+                            else:
+                                self.root.ids[mac + '_role_mac'].text = str(mac)
+                                self.root.ids[mac + '_role_ip'].text = str(ip)
+                            roles_reply[i] = ROLE.index(self.devices_list[mac])
+                        reply = struct.pack('<BBBH', 200, roles_reply[0], roles_reply[1], self.driverPort)
+                        self.sock_listen.sendto(self.wrap_payload(reply), (ip, serverPort))                    
             except socket.timeout:
                 pass
             if time.perf_counter() - t_tx_driver >= 5:

@@ -7,10 +7,10 @@
 
 #endif
 
-// Main BNO08X I2C address
+// Main BNO08X I2C address (as reference clock, must be enabled)
 uint8_t  i2c_main_addr = 0x4B;
 
-// Extended BNO08X I2C address
+// Extended BNO08X I2C address (optional)
 uint8_t  i2c_extend_addr = 0x4A;
 
 // Brownout detector
@@ -43,7 +43,7 @@ bool wifi_power_save = true;
  WIFI_POWER_MINUS_1dBm // -1dBm
 */
 // WiFi TX power
-wifi_power_t txPower = WIFI_POWER_19_5dBm;
+wifi_power_t txPower = WIFI_POWER_5dBm;
 
 // Battery analog reading to voltage function
 float get_battery_voltage(uint32_t milliVolt) {
