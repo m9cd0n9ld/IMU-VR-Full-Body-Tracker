@@ -92,9 +92,8 @@ bool extended_imu_found = false;
 uint8_t main_id = 0;
 uint8_t extended_id = 0;
 
-bool start_stream_main = false;
-bool start_stream_extend = false;
-bool start_stream_udp = false;
+bool streaming_udp = false;
+bool imu_start = false;
 
 float battery_voltage() {
   return get_battery_voltage(analogReadMilliVolts(batt_monitor_pin));
@@ -131,7 +130,6 @@ int16_t map(float x, float in_min = -1, float in_max = 1, float out_min = -32767
 
 void sendUDP(bool extend) {
   if ((driverPort != 0) && ((main_id != 0) || (extended_id != 0))) {
-    start_stream_udp = true;
     udp.beginPacket(udpAddress, driverPort);
     if (extend) {
       udp.write((uint8_t*)&payloadext, sizeof(payloadext));
@@ -224,12 +222,6 @@ void setup(){
   pinMode(led_pin, OUTPUT);
   
   t_blink = millis();
-  last_broadcast = millis();
-  last_ping = millis();
-  last_main_imu_check = millis();
-  last_extend_imu_check = millis();
-  last_udp_check = millis();
-  recv_watchdog = millis();
 
   if (!brown_en) {
     WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 1);
@@ -263,30 +255,30 @@ void loop(){
         recv_watchdog = millis();
         udpAddress = udp.remoteIP();
         main_id = ack.id;
-        if (main_id == 0) {
-          start_stream_main = false;
-        }
         extended_id = ack.id_ext;
-        if (extended_id == 0) {
-          start_stream_extend = false;
-        }
-        if ((main_id == 0) && (extended_id == 0)) {
-          start_stream_udp = false;
-        }
         driverPort = ack.driverPort;
-        if (driverPort == 0) {
-          start_stream_main = false;
-          start_stream_extend = false;
-          start_stream_udp = false;
+        if ((driverPort != 0) && ((main_id != 0) || (extended_id != 0))) {
+          if (!streaming_udp) {
+            streaming_udp = true;
+            last_udp_check = millis();
+          }
+        }
+        else {
+          streaming_udp = false;
         }
       }
     }
     
     if (udpAddress != IPAddress(0, 0, 0, 0)) {
+
+      if (!imu_start) {
+        imu_start = true;
+        last_main_imu_check = millis();
+        last_extend_imu_check = millis();
+      }
       
       if (myIMU.dataAvailable()) {
         last_main_imu_check = millis();
-        start_stream_main = true;
         payload.id = main_id;
         payload.x = map(myIMU.getQuatI());
         payload.y = map(myIMU.getQuatJ());
@@ -304,7 +296,6 @@ void loop(){
 
       if (extended_imu_found && myIMU2.dataAvailable()) {
         last_extend_imu_check = millis();
-        start_stream_extend = true;
         payloadext.id_ext = extended_id;
         payloadext.x_ext = map(myIMU2.getQuatI());
         payloadext.y_ext = map(myIMU2.getQuatJ());
@@ -323,19 +314,15 @@ void loop(){
         DEBUG_PRINT.println(ping.batt);
       }
 
-      if (start_stream_main) {
-        if (millis() - last_main_imu_check >= 500) {
-          ESP.deepSleep(1000);
-        }
+      if (millis() - last_main_imu_check >= 500) {
+        ESP.deepSleep(1000);
       }
 
-      if (start_stream_extend) {
-        if (millis() - last_extend_imu_check >= 500) {
-          ESP.deepSleep(1000);
-        }
+      if (extended_imu_found && (millis() - last_extend_imu_check >= 500)) {
+        ESP.deepSleep(1000);
       }
 
-      if (start_stream_udp) {
+      if (streaming_udp) {
         if (millis() - last_udp_check >= 500) {
           ESP.deepSleep(1000);
         }
@@ -359,9 +346,8 @@ void loop(){
   if (millis() - recv_watchdog >= 5000) {
     udpAddress = IPAddress(0, 0, 0, 0);
     driverPort = 0;
-    start_stream_main = false;
-    start_stream_extend = false;
-    start_stream_udp = false;
+    streaming_udp = false;
+    imu_start = false;
   }
 }
 
@@ -381,11 +367,21 @@ void WiFiEvent(WiFiEvent_t event){
           DEBUG_PRINT.print("WiFi connected! IP address: ");
           DEBUG_PRINT.println(WiFi.localIP());  
           udp.begin(WiFi.localIP(),serverPort);
+          last_broadcast = millis();
+          last_ping = millis();
+          last_main_imu_check = millis();
+          last_extend_imu_check = millis();
+          last_udp_check = millis();
+          recv_watchdog = millis();
           connected = true;
           break;
       case SYSTEM_EVENT_STA_DISCONNECTED:
           DEBUG_PRINT.println("WiFi lost connection");
           connected = false;
+          udpAddress = IPAddress(0, 0, 0, 0);
+          driverPort = 0;
+          streaming_udp = false;
+          imu_start = false;
           WiFi.reconnect();
           break;
       default: break;
