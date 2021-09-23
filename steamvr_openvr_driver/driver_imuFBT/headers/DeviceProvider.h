@@ -22,9 +22,6 @@ public:
 	void initLoop();
 
 private:
-	bool kinematicsRun = false;
-	std::thread* kinematicsThread = NULL;
-
 	bool initRun = false;
 	std::thread* initThread = NULL;
 
@@ -45,5 +42,5 @@ private:
 
 	std::chrono::high_resolution_clock::time_point t_hmd_last = std::chrono::high_resolution_clock::now();
 	std::chrono::high_resolution_clock::time_point t_end = std::chrono::high_resolution_clock::now();
-	double elapsed_time_ms;
+	double elapsed_time_ms = 0;
 };

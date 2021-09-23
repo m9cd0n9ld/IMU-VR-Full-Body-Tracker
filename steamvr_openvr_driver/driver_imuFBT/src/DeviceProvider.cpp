@@ -56,9 +56,6 @@ EVRInitError DeviceProvider::Init(IVRDriverContext* pDriverContext)
 	udpThread = new ImuUDP();
 	udpThread->init();
 
-	kinematicsRun = true;
-	kinematicsThread = new std::thread(&DeviceProvider::forwardKinematics, this);
-
 	initRun = true;
 	initThread = new std::thread(&DeviceProvider::initLoop, this);
 
@@ -70,13 +67,6 @@ void DeviceProvider::Cleanup()
 	udpThread->deinit();
 	delete udpThread;
 	udpThread = NULL;
-
-	if (kinematicsRun) {
-		kinematicsRun = false;
-		kinematicsThread->join();
-		delete kinematicsThread;
-		kinematicsThread = NULL;
-	}
 
 	if (initRun) {
 		initRun = false;
@@ -118,6 +108,9 @@ const char* const* DeviceProvider::GetInterfaceVersions()
 
 void DeviceProvider::RunFrame()
 {
+	if (init_recv) {
+		forwardKinematics();
+	}
 	if (m_pTracker1)
 	{
 		m_pTracker1->RunFrame();
@@ -182,33 +175,29 @@ void DeviceProvider::LeaveStandby()
 }
 
 void DeviceProvider::forwardKinematics() {
-	while (kinematicsRun) {
-		TrackedDevicePose_t trackedDevicePoses[k_unMaxTrackedDeviceCount];
-		VRServerDriverHost()->GetRawTrackedDevicePoses(0, trackedDevicePoses, k_unMaxTrackedDeviceCount);
+	TrackedDevicePose_t trackedDevicePoses[k_unMaxTrackedDeviceCount];
+	VRServerDriverHost()->GetRawTrackedDevicePoses(0, trackedDevicePoses, k_unMaxTrackedDeviceCount);
 
-		if (trackedDevicePoses[k_unTrackedDeviceIndex_Hmd].bPoseIsValid) {
-			HmdMatrix34_t hmdMatrix = trackedDevicePoses[k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking;
-			for (int i = 0; i < 3; i++) {
-				for (int j = 0; j < 3; j++) {
-					mat_hmd(i, j) = hmdMatrix.m[i][j];
-				}
+	if (trackedDevicePoses[k_unTrackedDeviceIndex_Hmd].bPoseIsValid) {
+		HmdMatrix34_t hmdMatrix = trackedDevicePoses[k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking;
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				mat_hmd(i, j) = hmdMatrix.m[i][j];
 			}
-			for (int k = 0; k < 3; k++) {
-				p_hmd(k) = hmdMatrix.m[k][3];
-			}
-			hmd_available = true;
-			t_hmd_last = std::chrono::high_resolution_clock::now();
 		}
-
-		bk->update(imu_lfoot, imu_rfoot, imu_lshin, imu_rshin, imu_lthigh, imu_rthigh, imu_waist, imu_chest, imu_lshoulder, imu_rshoulder, imu_lupperarm, imu_rupperarm, Quaternionf(mat_hmd), p_hmd);
-
-		t_end = std::chrono::high_resolution_clock::now();
-		elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_hmd_last).count();
-		if (elapsed_time_ms >= 5000) {
-			hmd_available = false;
+		for (int k = 0; k < 3; k++) {
+			p_hmd(k) = hmdMatrix.m[k][3];
 		}
+		hmd_available = true;
+		t_hmd_last = std::chrono::high_resolution_clock::now();
+	}
 
-		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+	bk->update(imu_lfoot, imu_rfoot, imu_lshin, imu_rshin, imu_lthigh, imu_rthigh, imu_waist, imu_chest, imu_lshoulder, imu_rshoulder, imu_lupperarm, imu_rupperarm, Quaternionf(mat_hmd), p_hmd);
+
+	t_end = std::chrono::high_resolution_clock::now();
+	elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_hmd_last).count();
+	if (elapsed_time_ms >= 5000) {
+		hmd_available = false;
 	}
 }
 

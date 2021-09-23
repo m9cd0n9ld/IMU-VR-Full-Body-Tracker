@@ -241,38 +241,66 @@ TabbedPanel:
             orientation: 'vertical'
             spacing: 5
 
+            Label:
+                id: steam_status
+                size_hint_y: 0.05
+                text: 'SteamVR offline'
+
             BoxLayout:
                 id: layout_ref
                 size_hint_y: 0.1
 				padding: [0, 0, 20, 0]
 
                 Label:
-                    size_hint_x: 0.25
+                    size_hint_x: 0.2
                     text: '[b]MAC[/b]'
-					markup: True
-
-                Label:
-                    size_hint_x: 0.25
-                    text: '[b]IP[/b]'
-					markup: True
-
-                Label:
-                    size_hint_x: 0.15
-                    text: '[b]Battery (V)[/b]'
-					markup: True
-
-                Label:
-                    size_hint_x: 0.15
-                    text: '[b]Battery (%)[/b]'
+                    halign: 'center'
 					markup: True
 
                 Label:
                     size_hint_x: 0.2
+                    text: '[b]IP[/b]'
+                    halign: 'center'
+					markup: True
+
+                Label:
+                    size_hint_x: 0.075
+                    text: '[b]Battery\nV[/b]'
+                    halign: 'center'
+					markup: True
+
+                Label:
+                    size_hint_x: 0.075
+                    text: '[b]Battery\n%[/b]'
+                    halign: 'center'
+					markup: True
+
+                Label:
+                    size_hint_x: 0.1
+                    text: '[b]IMU\nMode[/b]'
+                    halign: 'center'
+					markup: True
+
+                Label:
+                    size_hint_x: 0.1
+                    text: '[b]WiFi TX\nPower\ndBm[/b]'
+                    halign: 'center'
+					markup: True
+
+                Label:
+                    size_hint_x: 0.1
+                    text: '[b]WiFi\nPower\nSaving[/b]'
+                    halign: 'center'
+					markup: True
+
+                Label:
+                    size_hint_x: 0.15
                     text: '[b]Role[/b]'
+                    halign: 'center'
 					markup: True
 
             DefaultScroll:
-				size_hint_y: 0.8
+				size_hint_y: 0.75
 				
 				BoxLayout:
 					id: stack_list
@@ -297,7 +325,7 @@ TabbedPanel:
                     size_hint_x: 0.4
 
     TabbedPanelItem:
-        text: 'Role assignment'
+        text: 'Device settings'
 
         BoxLayout:
             orientation: 'vertical'
@@ -308,18 +336,39 @@ TabbedPanel:
 				padding: [0, 0, 20, 0]
 
                 Label:
-                    size_hint_x: 0.3
+                    size_hint_x: 0.2
                     text: '[b]MAC[/b]'
+                    halign: 'center'
 					markup: True
 
                 Label:
-                    size_hint_x: 0.3
-                    text: '[b]IP[/b]'
+                    size_hint_x: 0.1
+                    text: '[b]Connect[/b]'
+                    halign: 'center'
 					markup: True
 
                 Label:
-                    size_hint_x: 0.4
+                    size_hint_x: 0.35
+                    text: '[b]IMU Mode[/b]'
+                    halign: 'center'
+					markup: True
+
+                Label:
+                    size_hint_x: 0.1
+                    text: '[b]WiFi TX\nPower\ndBm[/b]'
+                    halign: 'center'
+					markup: True
+
+                Label:
+                    size_hint_x: 0.1
+                    text: '[b]WiFi\nPower\nSaving[/b]'
+                    halign: 'center'
+					markup: True
+
+                Label:
+                    size_hint_x: 0.15
                     text: '[b]Role[/b]'
+                    halign: 'center'
 					markup: True
 
             DefaultScroll:
@@ -333,7 +382,7 @@ TabbedPanel:
 					padding: [0, 0, 20, 0]
 
     TabbedPanelItem:
-        text: 'Settings'
+        text: 'Main settings'
 
         DefaultScroll:
 
@@ -534,13 +583,34 @@ TabbedPanel:
                     val: shoulder_width_h.slider.value * hscale.slider.value
 
                 ScaleInfo:
-                    desc: 'Total height'
+                    desc: '[b]Total height[/b]'
                     val: 
                         shin_h.slider.value * vscale.slider.value + \
                         thigh_h.slider.value * vscale.slider.value + \
                         lback_h.slider.value * vscale.slider.value + \
                         uback_h.slider.value * vscale.slider.value + \
                         head_h.slider.value * vscale.slider.value
+
+                BoxLayout:
+                    spacing: 5
+                    size_hint_y: None
+                    height: self.minimum_height * 1.5
+
+                    DefaultLabel:
+                        size_hint_x: 0.5
+                        text: '[b]VR headset height[/b]'
+
+                    DefaultLabel:
+                        id: headset_height
+                        size_hint_x: 0.15
+                        text: ''
+                        text_size: self.size
+                        halign: 'left'
+
+                    Button:
+                        size_hint_x: 0.35
+                        text: 'Measure'
+                        on_release: app.measure_height()
 
                 DefaultHBox:
                     

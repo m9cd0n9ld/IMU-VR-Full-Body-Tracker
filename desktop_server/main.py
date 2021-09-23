@@ -10,9 +10,9 @@ def resource_path(file):
 from kivy.config import Config
 Config.set('graphics', 'maxfps', '5000')
 Config.set('input', 'mouse', 'mouse,disable_multitouch')
-Config.set('graphics', 'width', '700')
+Config.set('graphics', 'width', '900')
 Config.set('graphics', 'height', '700')
-Config.set('graphics', 'minimum_width', '700')
+Config.set('graphics', 'minimum_width', '900')
 Config.set('graphics', 'minimum_height', '700')
 Config.set('kivy', 'window_icon', resource_path('icon.png'))
 from kivy.app import App
@@ -22,9 +22,10 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
 from kivy.uix.spinner import Spinner
+from kivy.uix.switch import Switch
 from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelItem
 from kivy.uix.image import Image
-from kivy.clock import Clock
+from kivy.clock import Clock, mainthread
 from kivy.properties import ObjectProperty
 from kivy.core.window import Window
 from plyer import filechooser
@@ -38,7 +39,7 @@ import binascii
 import time
 import math
 
-VERSION = "0.6"
+VERSION = "0.7"
 
 ROLE = ['No role',
         'Left foot',
@@ -53,6 +54,12 @@ ROLE = ['No role',
         'Right shoulder',
         'Left upper arm',
         'Right upper arm']
+
+MODE = ['AR/VR Stabilized Rotation Vector', 'AR/VR Stabilized Game Rotation Vector']
+
+MODE_SHORT = ['RV', 'GRV']
+
+POWER = [8, 20, 28, 34, 44, 52, 60, 66, 72, 78]
 
 def battPercent(v):
     v = float(v)
@@ -105,55 +112,115 @@ class Pop(FloatLayout):
         self.add_widget(panel)
 
 class RoleList(BoxLayout):
-    def __init__(self, mac, ip, role):
+    def __init__(self, mac, connect, mode, power, sleep, role):
         super().__init__()
-        self.height = App.get_running_app().root.ids.layout_ref.height / 2.5
+        self.height = App.get_running_app().root.ids.layout_ref.height / 1.75
         self.size_hint_y = None
-        self.spacing = 5
-        L1 = Label(size_hint_x=0.3, text=str(mac))
-        L2 = Label(size_hint_x=0.3, text=str(ip))
+        self.padding = [0, 0, 0, 2]
+        extend = '_extend' in mac
+        L1 = Label(size_hint_x=0.2, text=str(mac))
+        C1 = Switch(size_hint_x=0.1, active=connect, disabled=extend)
+        S1 = Spinner(size_hint_x=0.35, text=str(mode), values=MODE)
+        S2 = Spinner(size_hint_x=0.1, text=str(power), values=['{:.1f}'.format(x/4.0) for x in POWER], disabled=extend)
+        C2 = Switch(size_hint_x=0.1, active=sleep, disabled=extend)
+        S3 = Spinner(size_hint_x=0.15, text=str(role), values=ROLE)
         App.get_running_app().root.ids[mac + '_role_mac'] = L1
-        App.get_running_app().root.ids[mac + '_role_ip'] = L2
-        S1 = Spinner(size_hint_x=0.4, text=str(role),
-                     values=ROLE)
-        App.get_running_app().root.ids[mac + '_role_role'] = S1
-        S1.bind(text=self.onText)
+        App.get_running_app().root.ids[mac + '_role_connect'] = C1
+        App.get_running_app().root.ids[mac + '_role_mode'] = S1
+        App.get_running_app().root.ids[mac + '_role_power'] = S2
+        App.get_running_app().root.ids[mac + '_role_sleep'] = C2
+        App.get_running_app().root.ids[mac + '_role_role'] = S3
+        C1.bind(active=self.onActive1)
+        S1.bind(text=self.onText1)
+        S2.bind(text=self.onText2)
+        C2.bind(active=self.onActive2)
+        S3.bind(text=self.onText3)
         self.add_widget(L1)
-        self.add_widget(L2)
+        self.add_widget(C1)
         self.add_widget(S1)
-
-    def onText(self, spinner, text):
+        self.add_widget(S2)
+        self.add_widget(C2)
+        self.add_widget(S3)
+                
+    def onActive1(self, instance, value):
         for k, v in App.get_running_app().root.ids.items():
-            if v == spinner:
+            if '_main' in k and v == instance:
+                mac = k.replace('_role_connect', '')
+                ImuFbtServer.devices_list[mac]['connect'] = value
+                if mac.replace('_main', '_extend') in ImuFbtServer.devices_list.keys() and \
+                    mac.replace('_main', '_extend_role_connect') in App.get_running_app().root.ids.keys():
+                    App.get_running_app().root.ids[mac.replace('_main', '_extend_role_connect')].active = value
+                    ImuFbtServer.devices_list[mac.replace('_main', '_extend')]['connect'] = value
+                    
+    def onText1(self, instance, value):
+        for k, v in App.get_running_app().root.ids.items():
+            if v == instance:
+                mac = k.replace('_role_mode', '')
+                ImuFbtServer.devices_list[mac]['mode'] = value
+                
+    def onText2(self, instance, value):
+        for k, v in App.get_running_app().root.ids.items():
+            if '_main' in k and v == instance:
+                mac = k.replace('_role_power', '')
+                ImuFbtServer.devices_list[mac]['power'] = value
+                if mac.replace('_main', '_extend') in ImuFbtServer.devices_list.keys() and \
+                    mac.replace('_main', '_extend_role_power') in App.get_running_app().root.ids.keys():
+                    App.get_running_app().root.ids[mac.replace('_main', '_extend_role_power')].text = value
+                    ImuFbtServer.devices_list[mac.replace('_main', '_extend')]['power'] = value
+                    
+    def onActive2(self, instance, value):
+        for k, v in App.get_running_app().root.ids.items():
+            if '_main' in k and v == instance:
+                mac = k.replace('_role_sleep', '')
+                ImuFbtServer.devices_list[mac]['sleep'] = value
+                if mac.replace('_main', '_extend') in ImuFbtServer.devices_list.keys() and \
+                    mac.replace('_main', '_extend_role_sleep') in App.get_running_app().root.ids.keys():
+                    App.get_running_app().root.ids[mac.replace('_main', '_extend_role_sleep')].active = value
+                    ImuFbtServer.devices_list[mac.replace('_main', '_extend')]['sleep'] = value
+
+    def onText3(self, instance, value):
+        for k, v in App.get_running_app().root.ids.items():
+            if v == instance:
                 mac = k.replace('_role_role', '')
-                role = text
-                ImuFbtServer.devices_list[mac] = role
+                ImuFbtServer.devices_list[mac]['role'] = value
 
 class DeviceList(BoxLayout):
-    def __init__(self, mac, ip, battery, role):
+    def __init__(self, mac, ip, battery, mode, power, sleep, role):
         super().__init__()
-        self.height = App.get_running_app().root.ids.layout_ref.height / 2.5
+        self.height = App.get_running_app().root.ids.layout_ref.height / 1.75
         self.size_hint_y = None
-        self.spacing = 5
-        L1 = Label(size_hint_x=0.25, text=str(mac))
-        L2 = Label(size_hint_x=0.25, text=str(ip))
-        L3 = Label(size_hint_x=0.15, text=str(battery))
-        L4 = Label(size_hint_x=0.15, text=str(battPercent(battery)))
-        L5 = Label(size_hint_x=0.2, text=str(role))
+        self.padding = [0, 0, 0, 2]
+        L1 = Label(size_hint_x=0.2, text=str(mac))
+        L2 = Label(size_hint_x=0.2, text=str(ip))
+        L3 = Label(size_hint_x=0.075, text=str(battery))
+        L4 = Label(size_hint_x=0.075, text=str(battPercent(battery)))
+        L5 = Label(size_hint_x=0.1, text=str(mode))
+        L6 = Label(size_hint_x=0.1, text=str(power))
+        L7 = Label(size_hint_x=0.1, text=str(sleep))
+        L8 = Label(size_hint_x=0.15, text=str(role))
         App.get_running_app().root.ids[mac + '_list_mac'] = L1
         App.get_running_app().root.ids[mac + '_list_ip'] = L2
         App.get_running_app().root.ids[mac + '_list_battery'] = L3
         App.get_running_app().root.ids[mac + '_list_percent'] = L4
-        App.get_running_app().root.ids[mac + '_list_role'] = L5
+        App.get_running_app().root.ids[mac + '_list_mode'] = L5
+        App.get_running_app().root.ids[mac + '_list_power'] = L6
+        App.get_running_app().root.ids[mac + '_list_sleep'] = L7
+        App.get_running_app().root.ids[mac + '_list_role'] = L8
         self.add_widget(L1)
         self.add_widget(L2)
         self.add_widget(L3)
         self.add_widget(L4)
         self.add_widget(L5)
+        self.add_widget(L6)
+        self.add_widget(L7)
+        self.add_widget(L8)
 
 class ImuFbtServer(App):
+    broadPort = 6969
+    
     devices_list = {}
     devices_online = {}
+    devices_broad_online = {}
 
     focused = False
     temp_focus = ''
@@ -181,6 +248,7 @@ class ImuFbtServer(App):
         popupWindow = Popup(title="Help", content=show, size_hint=(None, None), size=size)
         popupWindow.open()
 
+    @mainthread
     def textinput_focus(self, *args):
         instance = args[0][0]
         value = args[0][1]
@@ -192,16 +260,24 @@ class ImuFbtServer(App):
             if instance.text == '':
                 instance.text = self.temp_focus
             self.focused = False
-            
+    
+    @mainthread
+    def wifi_configure_disabled(self, val):
+        self.root.ids.wifi_configure.disabled = val
+    
+    @mainthread
+    def wifi_configure_status_text(self, val):
+        self.root.ids.wifi_configure_status.text = val
+    
     def wifi_thread(self):
-        self.root.ids.wifi_configure.disabled = True
+        self.wifi_configure_disabled(True)
         try:
             port = self.root.ids.com_port_list.text
             ssid = self.root.ids.wifi_ssid.text
             password = self.root.ids.wifi_password.text
             if len(port) == 0 or len(ssid) == 0 or len(password) == 0:
-                self.root.ids.wifi_configure_status.text = 'Invalid settings'
-                self.root.ids.wifi_configure.disabled = False
+                self.wifi_configure_status_text('Invalid settings')
+                self.wifi_configure_disabled(False)
                 return
             ser = serial.Serial(port, 115200, timeout=0.1, write_timeout=0.1,
                                 xonxoff=False, rtscts=False, dsrdtr=False)
@@ -211,18 +287,18 @@ class ImuFbtServer(App):
             while self.wifi_thread_run:
                 msg = ser.read(1)
                 if len(msg) > 0 and msg[0] == 110:
-                    self.root.ids.wifi_configure_status.text = 'WiFi configured'
+                    self.wifi_configure_status_text('WiFi configured')
                     break
                 if time.perf_counter() - start >= 3:
-                    self.root.ids.wifi_configure_status.text = 'Serial timeout error'
+                    self.wifi_configure_status_text('Serial timeout error')
                     break
                 time.sleep(0.1)
             ser.close()
         except:
-            self.root.ids.wifi_configure_status.text = 'Serial connection error'
-        self.root.ids.wifi_configure.disabled = False
+            self.wifi_configure_status_text('Serial connection error')
+        self.wifi_configure_disabled(False)
         self.wifi_thread_run = False
-            
+        
     def configure_wifi(self):
         self.wifi_thread_run = True
         self.wifi_thread_process = threading.Thread(target=self.wifi_thread, args=())
@@ -236,12 +312,20 @@ class ImuFbtServer(App):
         if self.root.ids.com_port_list.text not in port_list:
             self.root.ids.com_port_list.text = ''
         self.root.ids.com_port_list.values = port_list
-        
+    
+    @mainthread
+    def calibrate_imu_button_disabled(self, val):
+        self.root.ids.calibrate_imu_button.disabled = val
+    
+    @mainthread
+    def calibrate_imu_button_text(self, val):
+        self.root.ids.calibrate_imu_button.text = val
+    
     def calibrate(self):
-        self.root.ids.calibrate_imu_button.disabled = True
+        self.calibrate_imu_button_disabled(True)
         i = 3
         while self.calibrate_run:
-            self.root.ids.calibrate_imu_button.text = 'Calibrating in {}...'.format(i)
+            self.calibrate_imu_button_text('Calibrating in {}...'.format(i))
             i -= 1
             time.sleep(1)
             if i <= 0:
@@ -250,13 +334,18 @@ class ImuFbtServer(App):
                     self.sock_listen.sendto(self.wrap_payload(payload), ('127.0.0.1', self.driverPort))
                 break
         self.calibrate_run = False
-        self.root.ids.calibrate_imu_button.text = 'Calibrate'
-        self.root.ids.calibrate_imu_button.disabled = False
-        
+        self.calibrate_imu_button_text('Calibrate')
+        self.calibrate_imu_button_disabled(False)
+    
     def calibrate_imu(self):
         self.calibrate_run = True
         self.calibrate_process = threading.Thread(target=self.calibrate, args=())
         self.calibrate_process.start()
+        
+    def measure_height(self):
+        payload = struct.pack('<B', 31)
+        if self.driverPort != 0:
+            self.sock_listen.sendto(self.wrap_payload(payload), ('127.0.0.1', self.driverPort))
         
     def check_payload(self, payload):
         if payload[0] == ord('I') and payload[-1] == ord('i'):
@@ -271,97 +360,229 @@ class ImuFbtServer(App):
     
     def unwrap_payload(self, payload):
         return payload[1:-1]
+    
+    @mainthread
+    def add_stack_role(self, mac, connect, mode, power, sleep, role):
+        RoleList_widget = RoleList(mac, connect, mode, power, sleep, role)
+        self.root.ids.stack_role.add_widget(RoleList_widget)
+        self.root.ids[mac + '_role'] = RoleList_widget
+        
+    @mainthread
+    def remove_stack_role(self, k):
+        if k + '_role' in self.root.ids.keys():
+            self.root.ids.stack_role.remove_widget(self.root.ids[k + '_role'])
+        if k + '_role' in self.root.ids.keys():
+            del self.root.ids[k + '_role']
+        if k + '_role_mac' in self.root.ids.keys():
+            del self.root.ids[k + '_role_mac']
+        if k + '_role_connect' in self.root.ids.keys():
+            del self.root.ids[k + '_role_connect']
+        if k + '_role_mode' in self.root.ids.keys():
+            del self.root.ids[k + '_role_mode']
+        if k + '_role_power' in self.root.ids.keys():
+            del self.root.ids[k + '_role_power']
+        if k + '_role_sleep' in self.root.ids.keys():
+            del self.root.ids[k + '_role_sleep']
+        if k + '_role_role' in self.root.ids.keys():
+            del self.root.ids[k + '_role_role']
+        
+    @mainthread
+    def steam_status_text(self, val):
+        self.root.ids.steam_status.text = val
+    
+    def broadudp(self):
+        broad_listen = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        broad_listen.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        broad_listen.bind(('0.0.0.0', self.broadPort))
+        broad_listen.settimeout(0.5)
+        hostIP = socket.gethostbyname(socket.gethostname())
+        while self.broad_run:
+            try:
+                payload, addr = broad_listen.recvfrom(32)
+                if self.check_payload(payload):
+                    payload = self.unwrap_payload(payload)
+                    if len(payload) == struct.calcsize('<BBBBBBB?'):
+                        if payload[0] == 77:
+                            ip = addr[0]
+                            mac = binascii.hexlify(payload[1:7]).decode()
+                            extend = payload[7]
+                            macs = [mac + '_main', mac + '_extend']
+                            roles_reply = [0, 0]
+                            modes_reply = [0, 0]
+                            if extend:
+                                for_length = 2
+                            else:
+                                for_length = 1
+                            for i in range(for_length):
+                                mac = macs[i]
+                                self.devices_broad_online[mac] = time.perf_counter()
+                                if mac + '_role' not in self.root.ids.keys():
+                                    if mac in self.devices_list.keys():
+                                        connect = self.devices_list[mac]['connect']
+                                        mode = self.devices_list[mac]['mode']
+                                        power = self.devices_list[mac]['power']
+                                        sleep = self.devices_list[mac]['sleep']
+                                        role = self.devices_list[mac]['role']
+                                    else:
+                                        connect = False
+                                        mode = MODE[0]
+                                        power = '19.5'
+                                        sleep = True
+                                        role = ROLE[0]
+                                        self.devices_list[mac] = {}
+                                        self.devices_list[mac]['connect'] = connect
+                                        self.devices_list[mac]['mode'] = mode
+                                        self.devices_list[mac]['power'] = power
+                                        self.devices_list[mac]['sleep'] = sleep
+                                        self.devices_list[mac]['role'] = role
+                                    self.add_stack_role(mac, connect, mode, power, sleep, role)
+                                roles_reply[i] = ROLE.index(self.devices_list[mac]['role'])
+                                modes_reply[i] = MODE.index(self.devices_list[mac]['mode'])
+                            if self.devices_list[macs[0]]['connect']:
+                                reply = struct.pack('<BBBBBBBHH', 200, roles_reply[0], roles_reply[1], modes_reply[0], modes_reply[1], 
+                                                    int(float(self.devices_list[mac]['power']) * 4), self.devices_list[mac]['sleep'], 
+                                                    self.serverPort, self.driverPort)
+                                broad_listen.sendto(self.wrap_payload(reply), (ip, self.broadPort))
+                    elif len(payload) == struct.calcsize('<BH'):
+                        if payload[0] == 17 and addr[0] == hostIP:
+                            self.steam_status_text('SteamVR online')
+                            ip = addr[0]
+                            _, self.driverPort = struct.unpack('<BH', payload)
+                            reply = struct.pack('<BH', 18, self.serverPort)
+                            broad_listen.sendto(self.wrap_payload(reply), (ip, self.driverPort))
+            except socket.timeout:
+                pass
+            to_del = []
+            for k, v in self.devices_broad_online.items():
+                if time.perf_counter() - v >= 5:
+                    to_del.append(k)
+            for k in to_del:
+                if k in self.devices_broad_online.keys():
+                    del self.devices_broad_online[k]
+                self.remove_stack_role(k)
+        broad_listen.close()
+        
+    @mainthread
+    def add_stack_list(self, mac, ip, battery, mode, power ,sleep, role):
+        DeviceList_widget = DeviceList(mac, ip, battery, mode, power ,sleep, role)
+        self.root.ids.stack_list.add_widget(DeviceList_widget)
+        self.root.ids[mac + '_list'] = DeviceList_widget
+        
+    @mainthread
+    def edit_stack_list(self, mac, ip, battery, mode, power ,sleep, role):
+        self.root.ids[mac + '_list_mac'].text = str(mac)
+        self.root.ids[mac + '_list_ip'].text = str(ip)
+        self.root.ids[mac + '_list_battery'].text = str(battery)
+        self.root.ids[mac + '_list_percent'].text = str(battPercent(battery))
+        self.root.ids[mac + '_list_mode'].text = str(mode)
+        self.root.ids[mac + '_list_power'].text = str(power)
+        self.root.ids[mac + '_list_sleep'].text = str(sleep)
+        self.root.ids[mac + '_list_role'].text = str(role)
+        
+    @mainthread
+    def remove_stack_list(self, k):
+        if k + '_list' in self.root.ids.keys():
+            self.root.ids.stack_list.remove_widget(self.root.ids[k + '_list'])
+        if k + '_list' in self.root.ids.keys():
+            del self.root.ids[k + '_list']
+        if k + '_list_mac' in self.root.ids.keys():
+            del self.root.ids[k + '_list_mac']
+        if k + '_list_ip' in self.root.ids.keys():
+            del self.root.ids[k + '_list_ip']
+        if k + '_list_battery' in self.root.ids.keys():
+            del self.root.ids[k + '_list_battery']
+        if k + '_list_percent' in self.root.ids.keys():
+            del self.root.ids[k + '_list_percent']
+        if k + '_list_mode' in self.root.ids.keys():
+            del self.root.ids[k + '_list_mode']
+        if k + '_list_power' in self.root.ids.keys():
+            del self.root.ids[k + '_list_power']
+        if k + '_list_sleep' in self.root.ids.keys():
+            del self.root.ids[k + '_list_sleep']
+        if k + '_list_role' in self.root.ids.keys():
+            del self.root.ids[k + '_list_role']
+    
+    @mainthread
+    def headset_height_text(self, val):
+        self.root.ids.headset_height.text = val
         
     def udp(self):
         self.sock_listen = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        serverPort = 6969
-        self.driverPort = 0
-        self.sock_listen.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.sock_listen.bind(('0.0.0.0', serverPort))
+        self.sock_listen.bind(('0.0.0.0', 0))
         self.sock_listen.settimeout(0.5)
+        self.serverPort = self.sock_listen.getsockname()[1]
+        self.driverPort = 0
         t_tx_driver = time.perf_counter()
         while self.thread_run:
             try:
                 payload, addr = self.sock_listen.recvfrom(32)
                 if self.check_payload(payload):
                     payload = self.unwrap_payload(payload)
-                    if len(payload) == struct.calcsize('<B'):
-                        if payload[0] == 77:
-                            ip = addr[0]
-                            reply = struct.pack('<BBBH', 200, 0, 0, self.driverPort)
-                            self.sock_listen.sendto(self.wrap_payload(reply), (ip, serverPort))
+                    if len(payload) == struct.calcsize('<Bf'):
+                        if payload[0] == 32:
+                            height = struct.unpack('<f', payload[1:])[0]
+                            self.headset_height_text('{:.2f} m'.format(height))
                     elif len(payload) == struct.calcsize('<BH'):
                         if payload[0] == 87:
+                            self.steam_status_text('SteamVR online')
                             _, self.driverPort = struct.unpack('<BH', payload)
                             if not self.focused:
                                 self.set_driver_settings()
                             t_tx_driver = time.perf_counter()
                         elif payload[0] == 97:
+                            self.steam_status_text('SteamVR online')
                             _, self.driverPort = struct.unpack('<BH', payload)
                             self.set_init_settings()
-                    elif len(payload) == struct.calcsize('<BBBBBBBBf?'):
+                            t_tx_driver = time.perf_counter()
+                    elif len(payload) == struct.calcsize('<BBBBBBBBfBBBB?'):
                         mac = binascii.hexlify(payload[2:8]).decode()
                         ip = addr[0]
-                        battery, extend = struct.unpack('<f?', payload[8:])
+                        battery, mode, mode_ext, power, sleep, extend = struct.unpack('<fBBBB?', payload[8:])
                         battery = '{:.2f}'.format(battery)
-                        roles = [ROLE[payload[0]], ROLE[payload[1]]]
-                        macs = [mac + '_main', mac + '_extend']
+                        power = '{:.1f}'.format(power/4.0)
+                        sleep = str(bool(sleep))
                         roles_reply = [0, 0]
+                        modes_reply = [0, 0]
                         if extend:
                             for_length = 2
+                            roles = [ROLE[payload[0]], ROLE[payload[1]]]
+                            modes = [MODE_SHORT[mode], MODE_SHORT[mode_ext]]
+                            macs = [mac + '_main', mac + '_extend']
                         else:
                             for_length = 1
+                            roles = [ROLE[payload[0]]]
+                            modes = [MODE_SHORT[mode]]
+                            macs = [mac + '_main']
                         for i in range(for_length):
                             role = roles[i]
+                            mode = modes[i]
                             mac = macs[i]
                             self.devices_online[mac] = time.perf_counter()
+                            self.devices_broad_online[mac] = time.perf_counter()
                             if mac + '_list' not in self.root.ids.keys():
-                                DeviceList_widget = DeviceList(mac, ip, battery, role)
-                                self.root.ids.stack_list.add_widget(DeviceList_widget)
-                                self.root.ids[mac + '_list'] = DeviceList_widget
+                                self.add_stack_list(mac, ip, battery, mode, power, sleep, role)
                             else:
-                                self.root.ids[mac + '_list_mac'].text = str(mac)
-                                self.root.ids[mac + '_list_ip'].text = str(ip)
-                                self.root.ids[mac + '_list_battery'].text = str(battery)
-                                self.root.ids[mac + '_list_percent'].text = str(battPercent(battery))
-                                self.root.ids[mac + '_list_role'].text = str(role)
-                            if mac + '_role' not in self.root.ids.keys():
-                                if mac in self.devices_list.keys():
-                                    role = self.devices_list[mac]
-                                else:
-                                    role = ROLE[0]
-                                    self.devices_list[mac] = role
-                                RoleList_widget = RoleList(mac, ip, role)
-                                self.root.ids.stack_role.add_widget(RoleList_widget)
-                                self.root.ids[mac + '_role'] = RoleList_widget
-                            else:
-                                self.root.ids[mac + '_role_mac'].text = str(mac)
-                                self.root.ids[mac + '_role_ip'].text = str(ip)
-                            roles_reply[i] = ROLE.index(self.devices_list[mac])
-                        reply = struct.pack('<BBBH', 200, roles_reply[0], roles_reply[1], self.driverPort)
-                        self.sock_listen.sendto(self.wrap_payload(reply), (ip, serverPort))                    
+                                self.edit_stack_list(mac, ip, battery, mode, power, sleep, role)
+                            roles_reply[i] = ROLE.index(self.devices_list[mac]['role'])
+                            modes_reply[i] = MODE.index(self.devices_list[mac]['mode'])
+                        if self.devices_list[macs[0]]['connect']:
+                            reply = struct.pack('<BBBBBBBHH', 200, roles_reply[0], roles_reply[1], modes_reply[0], modes_reply[1], 
+                                                int(float(self.devices_list[mac]['power']) * 4), self.devices_list[mac]['sleep'], 
+                                                self.serverPort, self.driverPort)
+                            self.sock_listen.sendto(self.wrap_payload(reply), (ip, self.broadPort))
             except socket.timeout:
                 pass
             if time.perf_counter() - t_tx_driver >= 5:
+                self.steam_status_text('SteamVR offline')
                 self.driverPort = 0
             to_del = []
             for k, v in self.devices_online.items():
                 if time.perf_counter() - v >= 5:
                     to_del.append(k)
             for k in to_del:
-                del self.devices_online[k]
-                self.root.ids.stack_list.remove_widget(self.root.ids[k + '_list'])
-                self.root.ids.stack_role.remove_widget(self.root.ids[k + '_role'])
-                del self.root.ids[k + '_list']
-                del self.root.ids[k + '_list_mac']
-                del self.root.ids[k + '_list_ip']
-                del self.root.ids[k + '_list_battery']
-                del self.root.ids[k + '_list_percent']
-                del self.root.ids[k + '_list_role']
-                del self.root.ids[k + '_role']
-                del self.root.ids[k + '_role_mac']
-                del self.root.ids[k + '_role_ip']
-                del self.root.ids[k + '_role_role']
+                if k in self.devices_online.keys():
+                    del self.devices_online[k]
+                self.remove_stack_list(k)
         self.sock_listen.close()
 
     def set_driver_settings(self):
@@ -510,7 +731,8 @@ class ImuFbtServer(App):
                               shoulder_enable,
                               upperarm_enable)
         self.sock_listen.sendto(self.wrap_payload(payload), ('127.0.0.1', self.driverPort))
-        
+    
+    @mainthread
     def save(self, file):        
         config = ConfigParser()
         
@@ -637,7 +859,23 @@ class ImuFbtServer(App):
 
         config.add_section('devices')
         for k, v in self.devices_list.items():
-            config.set('devices', k, v)
+            config.set('devices', k, str(v['role']))
+            
+        config.add_section('devices_mode')
+        for k, v in self.devices_list.items():
+            config.set('devices_mode', k, str(v['mode']))
+            
+        config.add_section('devices_connect')
+        for k, v in self.devices_list.items():
+            config.set('devices_connect', k, str(int(v['connect'])))
+            
+        config.add_section('devices_power')
+        for k, v in self.devices_list.items():
+            config.set('devices_power', k, str(v['power']))
+            
+        config.add_section('devices_sleep')
+        for k, v in self.devices_list.items():
+            config.set('devices_sleep', k, str(int(v['sleep'])))
 
         sections = ['lfoot', 'rfoot', 'lshin', 'rshin', 'lthigh', 'rthigh', 
                     'waist', 'chest', 'lshoulder', 'rshoulder', 'lupperarm', 'rupperarm']
@@ -652,7 +890,8 @@ class ImuFbtServer(App):
         filename = file.split('\\')[-1]
         self.root.ids.save_load_text.text = '{} saved'.format(filename)
         self.update_settings(file)
-            
+    
+    @mainthread    
     def load(self, file):
         if os.path.isfile(file):
             try:
@@ -766,7 +1005,30 @@ class ImuFbtServer(App):
                 self.root.ids.head_o.slider2.value = float(config.get('offset', 'head_pos_2'))
 
                 for k in config.items('devices'):
-                    self.devices_list[k[0]] = k[1]
+                    self.devices_list[k[0]] = {}
+                    self.devices_list[k[0]]['role'] = k[1]
+                    if k[0] + '_role_role' in self.root.ids.keys():
+                        self.root.ids[k[0] + '_role_role'].text = k[1]
+                    
+                for k in config.items('devices_mode'):
+                    self.devices_list[k[0]]['mode'] = k[1]
+                    if k[0] + '_role_mode' in self.root.ids.keys():
+                        self.root.ids[k[0] + '_role_mode'].text = k[1]
+                    
+                for k in config.items('devices_connect'):
+                    self.devices_list[k[0]]['connect'] = int(k[1])
+                    if k[0] + '_role_connect' in self.root.ids.keys():
+                        self.root.ids[k[0] + '_role_connect'].active = bool(int(k[1]))
+                        
+                for k in config.items('devices_power'):
+                    self.devices_list[k[0]]['power'] = k[1]
+                    if k[0] + '_role_power' in self.root.ids.keys():
+                        self.root.ids[k[0] + '_role_power'].text = k[1]
+                        
+                for k in config.items('devices_sleep'):
+                    self.devices_list[k[0]]['sleep'] = int(k[1])
+                    if k[0] + '_role_sleep' in self.root.ids.keys():
+                        self.root.ids[k[0] + '_role_sleep'].active = bool(int(k[1]))
                 
                 filename = file.split('\\')[-1]
                 self.root.ids.save_load_text.text = '{} loaded'.format(filename)
@@ -804,13 +1066,20 @@ class ImuFbtServer(App):
             except:
                 pass
         
+        Clock.schedule_interval(self.com_port_scanner, 3)
+        
+        Clock.schedule_once(self.delay_cb, 3)
+        
+    def delay_cb(self, dt):
         self.thread_run = True
         self.thread_process = threading.Thread(target=self.udp, args=())
         self.thread_process.start()
-        
-        Clock.schedule_interval(self.com_port_scanner, 1)
 
-    def on_stop(self):           
+        self.broad_run = True
+        self.broad_process = threading.Thread(target=self.broadudp, args=())
+        self.broad_process.start()
+        
+    def on_stop(self):        
         self.wifi_thread_run = False
         try:
             self.wifi_thread_process.join()
@@ -822,11 +1091,35 @@ class ImuFbtServer(App):
             self.calibrate_process.join()
         except:
             pass
+        
+        self.broad_run = False
+        try:
+            self.broad_process.join()
+        except:
+            pass
 
         self.thread_run = False
-        self.thread_process.join()
+        try:
+            self.thread_process.join()
+        except:
+            pass
+        
+        self.fLock.close()
+        os.remove(self.lock_file)
 
-    def build(self):                
+    def build(self):
+        dir_path = os.path.join(os.path.expanduser('~'),
+                                'Documents', 'imuFBT')
+        if not os.path.isdir(dir_path):
+            os.mkdir(dir_path)
+        self.lock_file = os.path.join(dir_path, 'lock')
+        try:
+            os.remove(self.lock_file)
+        except PermissionError:
+            return sys.exit()
+        except FileNotFoundError:
+            pass
+        self.fLock = open(self.lock_file, 'w')
         return Builder.load_file(resource_path('main.kv'))
 
 

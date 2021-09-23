@@ -8,11 +8,16 @@ void ImuUDP::init() {
 		local.sin_family = AF_INET;
 		inet_pton(AF_INET, "0.0.0.0", &local.sin_addr.s_addr);
 		local.sin_port = htons(0);
-
 		socketS = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-
 		int iTimeout = 100;
 		setsockopt(socketS, SOL_SOCKET, SO_RCVTIMEO, (const char*)&iTimeout, sizeof(iTimeout));
+
+		localB.sin_family = AF_INET;
+		inet_pton(AF_INET, "255.255.255.255", &localB.sin_addr.s_addr);
+		localB.sin_port = htons(broadPort);
+		socketB = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+		char broadcast = 1;
+		setsockopt(socketB, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast));
 
 		localT.sin_family = AF_INET;
 		inet_pton(AF_INET, "127.0.0.1", &localT.sin_addr.s_addr);
@@ -143,6 +148,7 @@ void ImuUDP::start()
 		else if (bytes_read == sizeof(InitSettings)) {
 			init_settings = (InitSettings*)buff;
 			if (init_settings->header == (uint8_t)'I' && init_settings->footer == (uint8_t)'i') {
+				t_server_rx = std::chrono::high_resolution_clock::now();
 				feet_en = init_settings->feet_en;
 				shin_en = init_settings->shin_en;
 				thigh_en = init_settings->thigh_en;
@@ -158,6 +164,7 @@ void ImuUDP::start()
 		else if (bytes_read == sizeof(OffsetSettings)) {
 			offset_settings = (OffsetSettings*)buff;
 			if (offset_settings->header == (uint8_t)'I' && offset_settings->footer == (uint8_t)'i') {
+				t_server_rx = std::chrono::high_resolution_clock::now();
 				Vector2f lfoot_offset(offset_settings->lfoot_1, offset_settings->lfoot_2);
 				Vector2f rfoot_offset(offset_settings->rfoot_1, offset_settings->rfoot_2);
 				Vector2f lshin_offset(offset_settings->lshin_1, offset_settings->lshin_2);
@@ -178,6 +185,7 @@ void ImuUDP::start()
 		else if (bytes_read == sizeof(PayloadSettings)) {
 			payload_settings = (PayloadSettings*)buff;
 			if (payload_settings->header == (uint8_t)'I' && payload_settings->footer == (uint8_t)'i') {
+				t_server_rx = std::chrono::high_resolution_clock::now();
 				Quaternionf T_lfoot = bk->euXYZ_to_quat(payload_settings->lfoot_x, payload_settings->lfoot_y, payload_settings->lfoot_z);
 				Quaternionf T_rfoot = bk->euXYZ_to_quat(payload_settings->rfoot_x, payload_settings->rfoot_y, payload_settings->rfoot_z);
 				Quaternionf T_lshin = bk->euXYZ_to_quat(payload_settings->lshin_x, payload_settings->lshin_y, payload_settings->lshin_z);
@@ -219,6 +227,27 @@ void ImuUDP::start()
 					Quaternionf direction = bk->euYXZ_to_quat(yaw, 0, 0);
 					bk->setOffset(imu_lfoot, imu_rfoot, imu_lshin, imu_rshin, imu_lthigh, imu_rthigh, imu_waist, imu_chest, imu_lshoulder, imu_rshoulder, imu_lupperarm, imu_rupperarm, direction);
 				}
+				else if (calibrate->calib == 31) {
+					if (serverPort != 0) {
+						heightmeasurement.header = (uint8_t)'I';
+						heightmeasurement.msg = 32;
+						heightmeasurement.height = p_hmd.y();
+						heightmeasurement.footer = (uint8_t)'i';
+						sendto(socketS, (char*)&heightmeasurement, sizeof(heightmeasurement), 0, (sockaddr*)&localT, locallenT);
+					}
+				}
+			}
+		}
+
+		else if (bytes_read == sizeof(BroadAck)) {
+			broadack = (BroadAck*)buff;
+			if (broadack->header == (uint8_t)'I' && broadack->footer == (uint8_t)'i') {
+				if (broadack->msg == 18) {
+					t_server_rx = std::chrono::high_resolution_clock::now();
+					serverPort = broadack->serverPort;
+					localT.sin_port = htons(serverPort);
+					toBroadcast = false;
+				}
 			}
 		}
 
@@ -226,20 +255,37 @@ void ImuUDP::start()
 
 		elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_server_last).count();
 		if (elapsed_time_ms >= 1000) {
-			if (!initialized) {
+			t_server_last = std::chrono::high_resolution_clock::now();
+			if (toBroadcast) {
 				ping.header = (uint8_t)'I';
-				ping.msg = 97;
+				ping.msg = 17;
 				ping.driverPort = driverPort;
 				ping.footer = (uint8_t)'i';
+				sendto(socketB, (char*)&ping, sizeof(ping), 0, (sockaddr*)&localB, locallenB);
 			}
 			else {
-				ping.header = (uint8_t)'I';
-				ping.msg = 87;
-				ping.driverPort = driverPort;
-				ping.footer = (uint8_t)'i';
+				if (!initialized) {
+					ping.header = (uint8_t)'I';
+					ping.msg = 97;
+					ping.driverPort = driverPort;
+					ping.footer = (uint8_t)'i';
+				}
+				else {
+					ping.header = (uint8_t)'I';
+					ping.msg = 87;
+					ping.driverPort = driverPort;
+					ping.footer = (uint8_t)'i';
+				}
+				if (serverPort != 0) {
+					sendto(socketS, (char*)&ping, sizeof(ping), 0, (sockaddr*)&localT, locallenT);
+				}
 			}
-			sendto(socketS, (char*)&ping, sizeof(ping), 0, (sockaddr*)&localT, locallenT);
-			t_server_last = std::chrono::high_resolution_clock::now();
+		}
+
+		elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_server_rx).count();
+		if (elapsed_time_ms >= 5000) {
+			serverPort = 0;
+			toBroadcast = true;
 		}
 
 		elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_lfoot_last).count();

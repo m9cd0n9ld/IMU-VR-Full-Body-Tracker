@@ -20,7 +20,7 @@
 #define LUPPERARM 11
 #define RUPPERARM 12
 
-#define DRIVER_VERSION 0.6
+#define DRIVER_VERSION 0.7
 
 extern bool SocketActivated;
 

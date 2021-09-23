@@ -164,10 +164,24 @@ private:
 		uint8_t footer;
 	});
 
+	PACK(struct HeightMeasurement {
+		uint8_t header;
+		uint8_t msg;
+		float height;
+		uint8_t footer;
+	});
+
 	PACK(struct Ping {
 		uint8_t header;
 		uint8_t msg;
 		uint16_t driverPort;
+		uint8_t footer;
+	});
+
+	PACK(struct BroadAck {
+		uint8_t header;
+		uint8_t msg;
+		uint16_t serverPort;
 		uint8_t footer;
 	});
 
@@ -188,7 +202,9 @@ private:
 	PayloadSettings* payload_settings;
 	OffsetSettings* offset_settings;
 	Calibrate* calibrate;
+	HeightMeasurement heightmeasurement;
 	Ping ping;
+	BroadAck* broadack;
 	InitSettings* init_settings;
 
 	SOCKET socketS;
@@ -200,7 +216,13 @@ private:
 
 	sockaddr_in localT;
 	int locallenT = sizeof(localT);
-	const uint16_t serverPort = 6969;
+	uint16_t serverPort = 0;
+
+	SOCKET socketB;
+	sockaddr_in localB;
+	int locallenB = sizeof(localB);
+	const uint16_t broadPort = 6969;
+	bool toBroadcast = true;
 
 	std::thread* pSocketThread = NULL;
 
@@ -220,6 +242,8 @@ private:
 	std::chrono::high_resolution_clock::time_point t_server_last = std::chrono::high_resolution_clock::now();
 
 	std::chrono::high_resolution_clock::time_point t_end = std::chrono::high_resolution_clock::now();
+
+	std::chrono::high_resolution_clock::time_point t_server_rx = std::chrono::high_resolution_clock::now();
 	double elapsed_time_ms;
 
 	bool initialized = false;
