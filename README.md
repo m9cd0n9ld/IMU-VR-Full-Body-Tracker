@@ -29,7 +29,7 @@
  2. Extract esp32.sketch.zip, edit the settings (pin settings, etc.) in esp32_settings.h file.  
  3. Upload the sketch to ESP32 microcontroller with Arduino IDE (SparkFun_BNO080_Arduino_Library Arduino library is required).  
  4. Extract desktop.server.zip and run imufbtserver.exe (might trigger antivirus false positive, known problem for unsigned PyInstaller exe files).  
- 5. Set the tracker sensor frame to driver frame (X right, Y up, Z back) XYZ intrinsic rotation based on the mounting orientation, body segment length, tracker position and offset settings when standing in T-pose** in **Settings** and **Offset settings** tab.  
+ 5. Set the tracker sensor frame to driver frame (X right, Y up, Z back) XYZ intrinsic rotation based on the mounting orientation, body segment length, tracker position and offset settings when standing in T-pose** in **Main settings** and **Offset settings** tab.  
  6. Activate required tracker devices to be output to SteamVR. In some SteamVR game/program, the hand controllers might lose tracking or not working if too many tracker devices are activated.  
  7. Set the tracker floor level offset (tracker min Y value) if necessary.  
  8. Enable override feet tracker data with lower leg tracker data if want to use lower leg tracker as foot role. Feet tracker device must still be activated.  
@@ -48,31 +48,32 @@
  <p/>
  
  11. Once WiFi credential is configured, unplug the USB cable and power cycle the ESP32 to establish WiFi connection.  
- 12. The trackers will be listed in both **Devices** and **Role assignment** tabs.  
- 13. Set the roles of the trackers in **Role assignment** tab.  
+ 12. The trackers will be listed in **Device settings** tabs.  
+ 13. Set the IMU mode, WiFi TX power, WiFi power saving mode and role of the trackers in **Device settings** tab.  
  <p align="middle">
  <img src="media/desktop_app_choose_role.png" width="40%">
  <p/>
  
- 14. Once everything is setup properly, the trackers with correct roles assignment will be shown in **Devices** tab.  
+ 14. Click **Connect** slider, and the trackers with correct settings will be shown in **Devices** tab.  
+ 15. Save the settings in **Main settings** tab to save the device settings.  
  <p align="middle">
  <img src="media/desktop_app_devices_list.png" width="40%">
  <p/>
  
- 15. Mount the trackers according to the following diagram. For feet/leg tracking, chest tracker, waist tracker, thigh trackers and lower leg trackers are required. Feet trackers are optional. For elbow tracking, chest tracker, shoulder trackers and upper arm trackers are required.  
+ 16. Mount the trackers according to the following diagram. For feet/leg tracking, chest tracker, waist tracker, thigh trackers and lower leg trackers are required. Feet trackers are optional. For elbow tracking, chest tracker, shoulder trackers and upper arm trackers are required.  
  <p align="middle">
  <img src="media/T-pose_skeleton_diagram.png" width="60%">
  <img src="media/tracker_kinematic_chain.png" width="60%">
  <p/>
  
- 16. Open SteamVR.  
- 17. The trackers will be shown in SteamVR environment at weird position and orientation on startup.  
- 18. Stand in T-pose**, then press **Calibrate** button in **Devices** tab to realign/calibrate the trackers.  
+ 17. Open SteamVR.  
+ 18. The trackers will be shown in SteamVR environment at weird position and orientation on startup.  
+ 19. Stand in T-pose**, then press **Calibrate** button in **Devices** tab to realign/calibrate the trackers.  
  <p align="middle">
  <img src="media/steamvr_sensors_alignment.gif" width="60%">
  <p/>
  
- 19. Done!  
+ 20. Done!  
  <p align="middle">
  <img src="media/final_result.gif" width="60%">
  <img src="media/feet_saber.gif" width="60%">
