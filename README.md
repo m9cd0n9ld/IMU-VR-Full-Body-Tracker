@@ -33,7 +33,7 @@
  6. Activate required tracker devices to be output to SteamVR. In some SteamVR game/program, the hand controllers might lose tracking or not working if too many tracker devices are activated.  
  7. Set the tracker floor level offset (tracker min Y value) if necessary.  
  8. Enable override feet tracker data with lower leg tracker data if want to use lower leg tracker as foot role. Feet tracker device must still be activated.  
- 9. Save the settings by pressing **Save settings** button or load an existing saved settings by pressing **Load settings** button in **Settings** tab. The last saved/loaded settings will be automatically loaded in the next instance.  
+ 9. Save the settings by pressing **Save settings** button or load an existing saved settings by pressing **Load settings** button in **Main settings** tab. The last saved/loaded settings will be automatically loaded in the next instance.  
  <p align="middle">
  <img src="media/desktop_app_settings_1.png" width="45%">
  <img src="media/desktop_app_settings_2.png" width="45%">
