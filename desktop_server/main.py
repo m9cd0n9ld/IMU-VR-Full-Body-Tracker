@@ -38,6 +38,7 @@ import struct
 import binascii
 import time
 import math
+import subprocess
 
 VERSION = "0.7"
 
@@ -61,6 +62,11 @@ MODE_SHORT = ['RV', 'GRV']
 
 POWER = [8, 20, 28, 34, 44, 52, 60, 66, 72, 78]
 
+ACCURACY = ['Unreliable', 'Low', 'Medium', 'High']
+
+tpose_image = resource_path('T-pose_skeleton_diagram.png')
+kinematics_image = resource_path('tracker_kinematic_chain.png')
+
 def battPercent(v):
     v = float(v)
     denominator = (1 + (v / 3.7)**80)**0.165
@@ -70,6 +76,19 @@ def battPercent(v):
     elif percent <= 0:
         percent = 0
     return percent
+
+def mapRange(value, inMin=-32767.0, inMax=32767.0, outMin=-1.0, outMax=1.0):
+    return outMin + (((value - inMin) / (inMax - inMin)) * (outMax - outMin))
+
+class TrackerView:
+    ac = ObjectProperty()
+    px = ObjectProperty()
+    py = ObjectProperty()
+    pz = ObjectProperty()
+    qx = ObjectProperty()
+    qy = ObjectProperty()
+    qz = ObjectProperty()
+    qw = ObjectProperty()
 
 class TransformInput:
     tx = ObjectProperty()
@@ -97,12 +116,12 @@ class Pop(FloatLayout):
                             tab_width=Window.size[1] * 0.8 / 2.1)
         
         panelOne = TabbedPanelItem(text='T-pose skeleton joint diagram')
-        image_path = resource_path('T-pose_skeleton_diagram.png')
+        image_path = tpose_image
         img = Image(source=image_path, pos_hint = {'center_x': .5, 'center_y': .5})
         panelOne.add_widget(img)
         
         panelTwo = TabbedPanelItem(text='Tracker kinematic chain')
-        image_path = resource_path('tracker_kinematic_chain.png')
+        image_path = kinematics_image
         img = Image(source=image_path, pos_hint = {'center_x': .5, 'center_y': .5})
         panelTwo.add_widget(img)
 
@@ -185,27 +204,29 @@ class RoleList(BoxLayout):
                 ImuFbtServer.devices_list[mac]['role'] = value
 
 class DeviceList(BoxLayout):
-    def __init__(self, mac, ip, battery, mode, power, sleep, role):
+    def __init__(self, mac, ip, battery, mode, accuracy, power, sleep, role):
         super().__init__()
         self.height = App.get_running_app().root.ids.layout_ref.height / 1.75
         self.size_hint_y = None
         self.padding = [0, 0, 0, 2]
         L1 = Label(size_hint_x=0.2, text=str(mac))
-        L2 = Label(size_hint_x=0.2, text=str(ip))
+        L2 = Label(size_hint_x=0.175, text=str(ip))
         L3 = Label(size_hint_x=0.075, text=str(battery))
         L4 = Label(size_hint_x=0.075, text=str(battPercent(battery)))
-        L5 = Label(size_hint_x=0.1, text=str(mode))
-        L6 = Label(size_hint_x=0.1, text=str(power))
-        L7 = Label(size_hint_x=0.1, text=str(sleep))
-        L8 = Label(size_hint_x=0.15, text=str(role))
+        L5 = Label(size_hint_x=0.075, text=str(mode))
+        L6 = Label(size_hint_x=0.075, text=str(accuracy))
+        L7 = Label(size_hint_x=0.0875, text=str(power))
+        L8 = Label(size_hint_x=0.0875, text=str(sleep))
+        L9 = Label(size_hint_x=0.15, text=str(role))
         App.get_running_app().root.ids[mac + '_list_mac'] = L1
         App.get_running_app().root.ids[mac + '_list_ip'] = L2
         App.get_running_app().root.ids[mac + '_list_battery'] = L3
         App.get_running_app().root.ids[mac + '_list_percent'] = L4
         App.get_running_app().root.ids[mac + '_list_mode'] = L5
-        App.get_running_app().root.ids[mac + '_list_power'] = L6
-        App.get_running_app().root.ids[mac + '_list_sleep'] = L7
-        App.get_running_app().root.ids[mac + '_list_role'] = L8
+        App.get_running_app().root.ids[mac + '_list_accuracy'] = L6
+        App.get_running_app().root.ids[mac + '_list_power'] = L7
+        App.get_running_app().root.ids[mac + '_list_sleep'] = L8
+        App.get_running_app().root.ids[mac + '_list_role'] = L9
         self.add_widget(L1)
         self.add_widget(L2)
         self.add_widget(L3)
@@ -214,6 +235,7 @@ class DeviceList(BoxLayout):
         self.add_widget(L6)
         self.add_widget(L7)
         self.add_widget(L8)
+        self.add_widget(L9)
 
 class ImuFbtServer(App):
     broadPort = 6969
@@ -224,6 +246,8 @@ class ImuFbtServer(App):
 
     focused = False
     temp_focus = ''
+    
+    current_page = ''
     
     def save_settings(self):
         filechooser.save_file(on_selection=self.handle_save, filters=['*.ini'])
@@ -330,8 +354,8 @@ class ImuFbtServer(App):
             time.sleep(1)
             if i <= 0:
                 payload = struct.pack('<B', 51)
-                if self.driverPort != 0:
-                    self.sock_listen.sendto(self.wrap_payload(payload), ('127.0.0.1', self.driverPort))
+                if self.bridgePort != 0:
+                    self.sock_listen.sendto(self.wrap_payload(payload), ('127.0.0.1', self.bridgePort))
                 break
         self.calibrate_run = False
         self.calibrate_imu_button_text('Calibrate')
@@ -344,8 +368,8 @@ class ImuFbtServer(App):
         
     def measure_height(self):
         payload = struct.pack('<B', 31)
-        if self.driverPort != 0:
-            self.sock_listen.sendto(self.wrap_payload(payload), ('127.0.0.1', self.driverPort))
+        if self.bridgePort != 0:
+            self.sock_listen.sendto(self.wrap_payload(payload), ('127.0.0.1', self.bridgePort))
         
     def check_payload(self, payload):
         if payload[0] == ord('I') and payload[-1] == ord('i'):
@@ -395,7 +419,13 @@ class ImuFbtServer(App):
         broad_listen.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         broad_listen.bind(('0.0.0.0', self.broadPort))
         broad_listen.settimeout(0.5)
-        hostIP = socket.gethostbyname(socket.gethostname())
+        
+        hostname = socket.gethostname()
+        host_list = socket.getaddrinfo(hostname, self.broadPort, socket.AF_INET, socket.SOCK_DGRAM)
+        hostIPs = ['127.0.0.1']
+        for i in range(len(host_list)):
+            hostIPs.append(host_list[i][4][0])
+        
         while self.broad_run:
             try:
                 payload, addr = broad_listen.recvfrom(32)
@@ -441,16 +471,16 @@ class ImuFbtServer(App):
                             if self.devices_list[macs[0]]['connect']:
                                 reply = struct.pack('<BBBBBBBHH', 200, roles_reply[0], roles_reply[1], modes_reply[0], modes_reply[1], 
                                                     int(float(self.devices_list[mac]['power']) * 4), self.devices_list[mac]['sleep'], 
-                                                    self.serverPort, self.driverPort)
+                                                    self.serverPort, self.bridgePort)
                                 broad_listen.sendto(self.wrap_payload(reply), (ip, self.broadPort))
                     elif len(payload) == struct.calcsize('<BH'):
-                        if payload[0] == 17 and addr[0] == hostIP:
+                        if payload[0] == 17 and addr[0] in hostIPs:
                             self.steam_status_text('SteamVR online')
                             ip = addr[0]
-                            _, self.driverPort = struct.unpack('<BH', payload)
+                            _, self.bridgePort = struct.unpack('<BH', payload)
                             reply = struct.pack('<BH', 18, self.serverPort)
-                            broad_listen.sendto(self.wrap_payload(reply), (ip, self.driverPort))
-            except socket.timeout:
+                            broad_listen.sendto(self.wrap_payload(reply), (ip, self.bridgePort))
+            except:
                 pass
             to_del = []
             for k, v in self.devices_broad_online.items():
@@ -463,18 +493,19 @@ class ImuFbtServer(App):
         broad_listen.close()
         
     @mainthread
-    def add_stack_list(self, mac, ip, battery, mode, power ,sleep, role):
-        DeviceList_widget = DeviceList(mac, ip, battery, mode, power ,sleep, role)
+    def add_stack_list(self, mac, ip, battery, mode, accuracy, power ,sleep, role):
+        DeviceList_widget = DeviceList(mac, ip, battery, mode, accuracy, power ,sleep, role)
         self.root.ids.stack_list.add_widget(DeviceList_widget)
         self.root.ids[mac + '_list'] = DeviceList_widget
         
     @mainthread
-    def edit_stack_list(self, mac, ip, battery, mode, power ,sleep, role):
+    def edit_stack_list(self, mac, ip, battery, mode, accuracy, power ,sleep, role):
         self.root.ids[mac + '_list_mac'].text = str(mac)
         self.root.ids[mac + '_list_ip'].text = str(ip)
         self.root.ids[mac + '_list_battery'].text = str(battery)
         self.root.ids[mac + '_list_percent'].text = str(battPercent(battery))
         self.root.ids[mac + '_list_mode'].text = str(mode)
+        self.root.ids[mac + '_list_accuracy'].text = str(accuracy)
         self.root.ids[mac + '_list_power'].text = str(power)
         self.root.ids[mac + '_list_sleep'].text = str(sleep)
         self.root.ids[mac + '_list_role'].text = str(role)
@@ -495,6 +526,8 @@ class ImuFbtServer(App):
             del self.root.ids[k + '_list_percent']
         if k + '_list_mode' in self.root.ids.keys():
             del self.root.ids[k + '_list_mode']
+        if k + '_list_accuracy' in self.root.ids.keys():
+            del self.root.ids[k + '_list_accuracy']
         if k + '_list_power' in self.root.ids.keys():
             del self.root.ids[k + '_list_power']
         if k + '_list_sleep' in self.root.ids.keys():
@@ -506,12 +539,25 @@ class ImuFbtServer(App):
     def headset_height_text(self, val):
         self.root.ids.headset_height.text = val
         
+    @mainthread
+    def on_tracker_data(self, payload):
+        if payload[0] in range(1, 13) and self.current_page == 'Tracker Data':
+            tracker_type = 'tracker_{}'.format(payload[0])
+            _, ac, px, py, pz, qx, qy, qz, qw, _ = struct.unpack('<B?fffhhhhB', payload)
+            self.root.ids[tracker_type].ac.text = str(ac)
+            self.root.ids[tracker_type].px.text = '{:.2f}'.format(px)
+            self.root.ids[tracker_type].py.text = '{:.2f}'.format(py)
+            self.root.ids[tracker_type].pz.text = '{:.2f}'.format(pz)
+            self.root.ids[tracker_type].qx.text = '{:.2f}'.format(mapRange(qx))
+            self.root.ids[tracker_type].qy.text = '{:.2f}'.format(mapRange(qy))
+            self.root.ids[tracker_type].qz.text = '{:.2f}'.format(mapRange(qz))
+            self.root.ids[tracker_type].qw.text = '{:.2f}'.format(mapRange(qw))
+        
     def udp(self):
         self.sock_listen = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock_listen.bind(('0.0.0.0', 0))
         self.sock_listen.settimeout(0.5)
         self.serverPort = self.sock_listen.getsockname()[1]
-        self.driverPort = 0
         t_tx_driver = time.perf_counter()
         while self.thread_run:
             try:
@@ -525,19 +571,20 @@ class ImuFbtServer(App):
                     elif len(payload) == struct.calcsize('<BH'):
                         if payload[0] == 87:
                             self.steam_status_text('SteamVR online')
-                            _, self.driverPort = struct.unpack('<BH', payload)
-                            if not self.focused:
-                                self.set_driver_settings()
+                            _, self.bridgePort = struct.unpack('<BH', payload)
+                            self.set_driver_settings()
                             t_tx_driver = time.perf_counter()
                         elif payload[0] == 97:
                             self.steam_status_text('SteamVR online')
-                            _, self.driverPort = struct.unpack('<BH', payload)
+                            _, self.bridgePort = struct.unpack('<BH', payload)
                             self.set_init_settings()
                             t_tx_driver = time.perf_counter()
-                    elif len(payload) == struct.calcsize('<BBBBBBBBfBBBB?'):
+                    elif len(payload) == struct.calcsize('<B?fffhhhhB'):
+                        self.on_tracker_data(payload)
+                    elif len(payload) == struct.calcsize('<BBBBBBBBfBBBBBB?'):
                         mac = binascii.hexlify(payload[2:8]).decode()
                         ip = addr[0]
-                        battery, mode, mode_ext, power, sleep, extend = struct.unpack('<fBBBB?', payload[8:])
+                        battery, mode, mode_ext, accuracy, accuracy_ext, power, sleep, extend = struct.unpack('<fBBBBBB?', payload[8:])
                         battery = '{:.2f}'.format(battery)
                         power = '{:.1f}'.format(power/4.0)
                         sleep = str(bool(sleep))
@@ -547,34 +594,37 @@ class ImuFbtServer(App):
                             for_length = 2
                             roles = [ROLE[payload[0]], ROLE[payload[1]]]
                             modes = [MODE_SHORT[mode], MODE_SHORT[mode_ext]]
+                            accuracies = [ACCURACY[accuracy], ACCURACY[accuracy_ext]]
                             macs = [mac + '_main', mac + '_extend']
                         else:
                             for_length = 1
                             roles = [ROLE[payload[0]]]
                             modes = [MODE_SHORT[mode]]
+                            accuracies = [ACCURACY[accuracy]]
                             macs = [mac + '_main']
                         for i in range(for_length):
                             role = roles[i]
                             mode = modes[i]
+                            accuracy = accuracies[i]
                             mac = macs[i]
                             self.devices_online[mac] = time.perf_counter()
                             self.devices_broad_online[mac] = time.perf_counter()
                             if mac + '_list' not in self.root.ids.keys():
-                                self.add_stack_list(mac, ip, battery, mode, power, sleep, role)
+                                self.add_stack_list(mac, ip, battery, mode, accuracy, power, sleep, role)
                             else:
-                                self.edit_stack_list(mac, ip, battery, mode, power, sleep, role)
+                                self.edit_stack_list(mac, ip, battery, mode, accuracy, power, sleep, role)
                             roles_reply[i] = ROLE.index(self.devices_list[mac]['role'])
                             modes_reply[i] = MODE.index(self.devices_list[mac]['mode'])
                         if self.devices_list[macs[0]]['connect']:
                             reply = struct.pack('<BBBBBBBHH', 200, roles_reply[0], roles_reply[1], modes_reply[0], modes_reply[1], 
                                                 int(float(self.devices_list[mac]['power']) * 4), self.devices_list[mac]['sleep'], 
-                                                self.serverPort, self.driverPort)
+                                                self.serverPort, self.bridgePort)
                             self.sock_listen.sendto(self.wrap_payload(reply), (ip, self.broadPort))
-            except socket.timeout:
+            except:
                 pass
             if time.perf_counter() - t_tx_driver >= 5:
                 self.steam_status_text('SteamVR offline')
-                self.driverPort = 0
+                self.bridgePort = 0
             to_del = []
             for k, v in self.devices_online.items():
                 if time.perf_counter() - v >= 5:
@@ -584,6 +634,17 @@ class ImuFbtServer(App):
                     del self.devices_online[k]
                 self.remove_stack_list(k)
         self.sock_listen.close()
+        
+    def onTabChange(self, tab):
+        self.current_page = tab.text
+        if tab.text == 'Tracker Data':
+            if self.bridgePort != 0:
+                payload = struct.pack('<B', 171)
+                self.sock_listen.sendto(self.wrap_payload(payload), ('127.0.0.1', self.bridgePort))
+        else:
+            if self.bridgePort != 0:
+                payload = struct.pack('<B', 172)
+                self.sock_listen.sendto(self.wrap_payload(payload), ('127.0.0.1', self.bridgePort))
 
     def set_driver_settings(self):
         T_lfoot_drv = [math.radians(float(self.root.ids.lfoot_t.tx.text)),
@@ -670,7 +731,8 @@ class ImuFbtServer(App):
                          upperarm_sensor_h,
                          floor_offset)
         struct.pack_into('<?', payload, 208, override_feet)
-        self.sock_listen.sendto(self.wrap_payload(payload), ('127.0.0.1', self.driverPort))
+        if not self.focused and self.bridgePort != 0:
+            self.sock_listen.sendto(self.wrap_payload(payload), ('127.0.0.1', self.bridgePort))
         
         lfoot_1 = float(self.root.ids.lfoot_o.slider1.value)
         lfoot_2 = float(self.root.ids.lfoot_o.slider2.value)
@@ -712,7 +774,8 @@ class ImuFbtServer(App):
         struct.pack_into('<2f', payload, 80, lupperarm_1, lupperarm_2)
         struct.pack_into('<2f', payload, 88, rupperarm_1, rupperarm_2)
         struct.pack_into('<2f', payload, 96, head_1, head_2)
-        self.sock_listen.sendto(self.wrap_payload(payload), ('127.0.0.1', self.driverPort))
+        if self.bridgePort != 0:
+            self.sock_listen.sendto(self.wrap_payload(payload), ('127.0.0.1', self.bridgePort))
         
     def set_init_settings(self):
         feet_enable = self.root.ids.feet_en_check.switch.active
@@ -730,7 +793,8 @@ class ImuFbtServer(App):
                               chest_enable,
                               shoulder_enable,
                               upperarm_enable)
-        self.sock_listen.sendto(self.wrap_payload(payload), ('127.0.0.1', self.driverPort))
+        if self.bridgePort != 0:
+            self.sock_listen.sendto(self.wrap_payload(payload), ('127.0.0.1', self.bridgePort))
     
     @mainthread
     def save(self, file):        
@@ -1065,10 +1129,23 @@ class ImuFbtServer(App):
                 self.load(config.get('last_settings', 'path'))
             except:
                 pass
+            
+        self.bridgePort = 0
+            
+        self.backend_run = True
+        self.backend_process = threading.Thread(target=self.backend, args=())
+        self.backend_process.start()
         
-        Clock.schedule_interval(self.com_port_scanner, 3)
+        self.clock1 = Clock.schedule_interval(self.com_port_scanner, 3)
         
-        Clock.schedule_once(self.delay_cb, 3)
+        self.clock2 = Clock.schedule_once(self.delay_cb, 0.5)
+        
+    def backend(self):
+        exe_path = resource_path(os.path.join('backend', 'imuFBTServerBackend.exe'))
+        while self.backend_run:
+            self.backend_exe = subprocess.Popen([exe_path], creationflags = subprocess.CREATE_NO_WINDOW)
+            self.backend_exe.wait()
+            time.sleep(1)
         
     def delay_cb(self, dt):
         self.thread_run = True
@@ -1079,7 +1156,17 @@ class ImuFbtServer(App):
         self.broad_process = threading.Thread(target=self.broadudp, args=())
         self.broad_process.start()
         
-    def on_stop(self):        
+    def on_stop(self):
+        try:
+            self.clock1.cancel()
+        except:
+            pass
+        
+        try:
+            self.clock2.cancel()
+        except:
+            pass
+        
         self.wifi_thread_run = False
         try:
             self.wifi_thread_process.join()
@@ -1101,6 +1188,13 @@ class ImuFbtServer(App):
         self.thread_run = False
         try:
             self.thread_process.join()
+        except:
+            pass
+        
+        self.backend_run = False
+        try:
+            self.backend_exe.terminate()
+            self.backend_process.join()
         except:
             pass
         

@@ -372,17 +372,15 @@ private:
 
 	// Find leveled offset quaternion
 	Quaternionf findLevelOffset(const Quaternionf& imu) {
-		Matrix3f imu_mat(imu);
-		float yaw = atan2f(-imu_mat(2, 0), imu_mat(0, 0));
-		Quaternionf leveled_quat = euYXZ_to_quat(yaw, 0, 0);
+		Quaternionf leveled_quat(imu.w(), 0, imu.y(), 0);
+		leveled_quat.normalize();
 		return imu.inverse() * leveled_quat;
 	}
 
 	// Find offset quaternion to specified heading
 	Quaternionf findHeadingOffset(const Quaternionf& imu, const Quaternionf& direction) {
-		Matrix3f imu_mat(imu);
-		float yaw = atan2f(-imu_mat(2, 0), imu_mat(0, 0));
-		Quaternionf heading_quat = euYXZ_to_quat(yaw, 0, 0);
+		Quaternionf heading_quat(imu.w(), 0, imu.y(), 0);
+		heading_quat.normalize();
 		return heading_quat.inverse() * direction;
 	}
 

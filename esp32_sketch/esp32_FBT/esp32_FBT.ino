@@ -53,6 +53,8 @@ struct __attribute__((packed)) Ping {
   float batt = 0;
   uint8_t mode;
   uint8_t mode_ext;
+  uint8_t accuracy = 0;
+  uint8_t accuracy_ext = 0;
   uint8_t wifi_power;
   uint8_t wifi_sleep;
   bool extend = false;
@@ -403,6 +405,8 @@ void loop(){
         payloadext.z = map(myIMU.getQuatK());
         payloadext.w = map(myIMU.getQuatReal());
 
+        ping.accuracy = myIMU.getQuatAccuracy();
+
         sendUDP(extended_imu_found);
       }
 
@@ -414,6 +418,8 @@ void loop(){
         payloadext.y_ext = map(myIMU2.getQuatJ());
         payloadext.z_ext = map(myIMU2.getQuatK());
         payloadext.w_ext = map(myIMU2.getQuatReal());
+
+        ping.accuracy_ext = myIMU2.getQuatAccuracy();
       }
 
       if ((serverPort != 0) && (millis() - last_ping >= 1000)) {

@@ -22,6 +22,10 @@ public:
 	void RunFrame();
 
 private:
+	float map(float x, float in_min = -32767, float in_max = 32767, float out_min = -1, float out_max = 1) {
+		return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+	}
+
 	int32_t TrackerIndex = 0;
 	std::string model = "";
 	std::string version = "";

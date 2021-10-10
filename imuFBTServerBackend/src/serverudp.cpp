@@ -1,6 +1,6 @@
-#include <ImuUDP.h>
+#include <serverudp.h>
 
-void ImuUDP::init() {
+bool serverudp::init() {
 	WSADATA wsaData;
 	int iResult;
 	iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -31,20 +31,26 @@ void ImuUDP::init() {
 				struct sockaddr_in sin;
 				socklen_t len = sizeof(sin);
 				getsockname(socketS, (struct sockaddr*)&sin, &len);
-				driverPort = ntohs(sin.sin_port);
+				bridgePort = ntohs(sin.sin_port);
 
 				SocketActivated = true;
-				pSocketThread = new std::thread(&ImuUDP::start, this);
+				pSocketThread = new std::thread(&serverudp::start, this);
+				DEBUG("Server socket initialized\n");
+				return true;
 			}
 			else {
 				WSACleanup();
 				SocketActivated = false;
+				DEBUG("Server socket bind failed\n");
+				return false;
 			}
 
 		}
 		else {
 			WSACleanup();
 			SocketActivated = false;
+			DEBUG("Server socket invalid\n");
+			return false;
 		}
 
 	}
@@ -52,14 +58,16 @@ void ImuUDP::init() {
 	{
 		WSACleanup();
 		SocketActivated = false;
+		DEBUG("Server WSA startup failed\n");
+		return false;
 	}
 }
 
-float ImuUDP::map(float x, float in_min = -32767, float in_max = 32767, float out_min = -1, float out_max = 1) {
+float serverudp::map(float x, float in_min = -32767, float in_max = 32767, float out_min = -1, float out_max = 1) {
 	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
-void ImuUDP::setValue(uint8_t id, float x, float y, float z, float w) {
+void serverudp::setValue(uint8_t id, float x, float y, float z, float w) {
 	switch (id) {
 	case LFOOT:
 		imu_lfoot = Quaternionf(w, x, y, z);
@@ -124,7 +132,7 @@ void ImuUDP::setValue(uint8_t id, float x, float y, float z, float w) {
 	}
 }
 
-void ImuUDP::start()
+void serverudp::start()
 {
 	while (SocketActivated) {
 		memset(buff, 0, sizeof(buff));
@@ -135,6 +143,7 @@ void ImuUDP::start()
 			if (payloadext->header == (uint8_t)'I' && payloadext->footer == (uint8_t)'i') {
 				setValue(payloadext->id, map(payloadext->x), map(payloadext->y), map(payloadext->z), map(payloadext->w));
 				setValue(payloadext->id_ext, map(payloadext->x_ext), map(payloadext->y_ext), map(payloadext->z_ext), map(payloadext->w_ext));
+				DEBUGFAST("Payload ext received from tracker\n");
 			}
 		}
 
@@ -142,6 +151,7 @@ void ImuUDP::start()
 			payload = (Payload*)buff;
 			if (payload->header == (uint8_t)'I' && payload->footer == (uint8_t)'i') {
 				setValue(payload->id, map(payload->x), map(payload->y), map(payload->z), map(payload->w));
+				DEBUGFAST("Payload received from tracker\n");
 			}
 		}
 
@@ -158,6 +168,7 @@ void ImuUDP::start()
 				upperarm_en = init_settings->upperarm_en;
 				init_recv = true;
 				initialized = true;
+				DEBUG("Init settings received from server\n");
 			}
 		}
 
@@ -179,6 +190,7 @@ void ImuUDP::start()
 				Vector2f rupperarm_offset(offset_settings->rupperarm_1, offset_settings->rupperarm_2);
 				Vector2f head_offset(offset_settings->head_1, offset_settings->head_2);
 				bk->setSensorOffset(lfoot_offset, rfoot_offset, lshin_offset, rshin_offset, lthigh_offset, rthigh_offset, waist_offset, chest_offset, lshoulder_offset, rshoulder_offset, lupperarm_offset, rupperarm_offset, head_offset);
+				DEBUG("Offset settings received from server\n");
 			}
 		}
 
@@ -216,6 +228,7 @@ void ImuUDP::start()
 					payload_settings->upperarm_sensor,
 					payload_settings->floor_offset);
 				override_feet = payload_settings->override_feet;
+				DEBUG("Payload settings received from server\n");
 			}
 		}
 
@@ -223,18 +236,30 @@ void ImuUDP::start()
 			calibrate = (Calibrate*)buff;
 			if (calibrate->header == (uint8_t)'I' && calibrate->footer == (uint8_t)'i') {
 				if (calibrate->calib == 51) {
-					float yaw = atan2f(-mat_hmd(2, 0), mat_hmd(0, 0));
-					Quaternionf direction = bk->euYXZ_to_quat(yaw, 0, 0);
+					Quaternionf quat_hmd(mat_hmd);
+					Quaternionf direction(quat_hmd.w(), 0, quat_hmd.y(), 0);
+					direction.normalize();
 					bk->setOffset(imu_lfoot, imu_rfoot, imu_lshin, imu_rshin, imu_lthigh, imu_rthigh, imu_waist, imu_chest, imu_lshoulder, imu_rshoulder, imu_lupperarm, imu_rupperarm, direction);
+					DEBUG("Calibration command received from server\n");
 				}
 				else if (calibrate->calib == 31) {
+					DEBUG("Height measurement command received from server\n");
 					if (serverPort != 0) {
 						heightmeasurement.header = (uint8_t)'I';
 						heightmeasurement.msg = 32;
 						heightmeasurement.height = p_hmd.y();
 						heightmeasurement.footer = (uint8_t)'i';
 						sendto(socketS, (char*)&heightmeasurement, sizeof(heightmeasurement), 0, (sockaddr*)&localT, locallenT);
+						DEBUG("Height measurement sent to server\n");
 					}
+				}
+				else if (calibrate->calib == 171) {
+					stream_viewer_data = true;
+					DEBUG("Stream viewer data enable request received from server");
+				}
+				else if (calibrate->calib == 172) {
+					stream_viewer_data = false;
+					DEBUG("Stream viewer data disable request received from server");
 				}
 			}
 		}
@@ -247,6 +272,7 @@ void ImuUDP::start()
 					serverPort = broadack->serverPort;
 					localT.sin_port = htons(serverPort);
 					toBroadcast = false;
+					DEBUG("Broadcast ack received from server\n");
 				}
 			}
 		}
@@ -259,25 +285,31 @@ void ImuUDP::start()
 			if (toBroadcast) {
 				ping.header = (uint8_t)'I';
 				ping.msg = 17;
-				ping.driverPort = driverPort;
+				ping.bridgePort = bridgePort;
 				ping.footer = (uint8_t)'i';
 				sendto(socketB, (char*)&ping, sizeof(ping), 0, (sockaddr*)&localB, locallenB);
+				DEBUG("Broadcast ping sent to server\n");
 			}
 			else {
 				if (!initialized) {
 					ping.header = (uint8_t)'I';
 					ping.msg = 97;
-					ping.driverPort = driverPort;
+					ping.bridgePort = bridgePort;
 					ping.footer = (uint8_t)'i';
+					if (serverPort != 0) {
+						sendto(socketS, (char*)&ping, sizeof(ping), 0, (sockaddr*)&localT, locallenT);
+						DEBUG("Init request sent to server\n");
+					}
 				}
 				else {
 					ping.header = (uint8_t)'I';
 					ping.msg = 87;
-					ping.driverPort = driverPort;
+					ping.bridgePort = bridgePort;
 					ping.footer = (uint8_t)'i';
-				}
-				if (serverPort != 0) {
-					sendto(socketS, (char*)&ping, sizeof(ping), 0, (sockaddr*)&localT, locallenT);
+					if (serverPort != 0) {
+						sendto(socketS, (char*)&ping, sizeof(ping), 0, (sockaddr*)&localT, locallenT);
+						DEBUG("Unicast ping sent to server\n");
+					}
 				}
 			}
 		}
@@ -339,7 +371,14 @@ void ImuUDP::start()
 	}
 }
 
-void ImuUDP::deinit() {
+void serverudp::send(char* data, uint64_t len) {
+	if (serverPort != 0) {
+		sendto(socketS, data, len, 0, (sockaddr*)&localT, locallenT);
+		DEBUGFAST("Viewer payload sent to server\n");
+	}
+}
+
+void serverudp::deinit() {
 	if (SocketActivated) {
 		SocketActivated = false;
 		if (pSocketThread) {

@@ -15,30 +15,27 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\DeviceFactory.cpp">
+    <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\DeviceProvider.cpp">
+    <ClCompile Include="src\serverudp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\TrackerDriver.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\UDP.cpp">
+    <ClCompile Include="src\driverudp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="headers\DeviceProvider.h">
+    <ClInclude Include="headers\kinematics.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="headers\TrackerDriver.h">
+    <ClInclude Include="headers\globals.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="headers\Globals.h">
+    <ClInclude Include="headers\serverudp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="headers\UDP.h">
+    <ClInclude Include="headers\driverudp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="headers\driverstruct.h">

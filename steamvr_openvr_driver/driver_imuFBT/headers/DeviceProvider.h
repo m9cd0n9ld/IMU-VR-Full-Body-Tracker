@@ -3,7 +3,7 @@
 #include <Globals.h>
 #include <openvr_driver.h>
 #include <TrackerDriver.h>
-#include <ImuUDP.h>
+#include <UDP.h>
 
 using namespace vr;
 
@@ -17,7 +17,6 @@ public:
 	virtual bool ShouldBlockStandbyMode();
 	virtual void EnterStandby();
 	virtual void LeaveStandby();
-	void forwardKinematics();
 	void initDevice();
 	void initLoop();
 
@@ -25,7 +24,7 @@ private:
 	bool initRun = false;
 	std::thread* initThread = NULL;
 
-	ImuUDP* udpThread = nullptr;
+	UDP* udpThread = nullptr;
 
 	TrackerDriver* m_pTracker1 = nullptr;
 	TrackerDriver* m_pTracker2 = nullptr;
@@ -39,8 +38,4 @@ private:
 	TrackerDriver* m_pTracker10 = nullptr;
 	TrackerDriver* m_pTracker11 = nullptr;
 	TrackerDriver* m_pTracker12 = nullptr;
-
-	std::chrono::high_resolution_clock::time_point t_hmd_last = std::chrono::high_resolution_clock::now();
-	std::chrono::high_resolution_clock::time_point t_end = std::chrono::high_resolution_clock::now();
-	double elapsed_time_ms = 0;
 };

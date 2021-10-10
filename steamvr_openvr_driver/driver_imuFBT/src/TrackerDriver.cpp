@@ -88,97 +88,34 @@ DriverPose_t TrackerDriver::GetPose()
 	if (SocketActivated) {
 		switch (TrackerIndex) {
 		case LFOOT:
-			if (!override_feet) {
-				if (lfoot_available) {
-					if (lshin_available && lthigh_available && waist_available && chest_available) {
-						pose.poseIsValid = true;
-						pose.result = TrackingResult_Running_OK;
-						pose.deviceIsConnected = true;
-					}
-					else {
-						pose.poseIsValid = true;
-						pose.result = TrackingResult_Fallback_RotationOnly;
-						pose.deviceIsConnected = true;
-					}
-				}
-				else {
-					pose.poseIsValid = false;
-					pose.result = TrackingResult_Running_OutOfRange;
-					pose.deviceIsConnected = false;
-				}
+			if (lfoot_available) {
+				pose.poseIsValid = true;
+				pose.result = TrackingResult_Running_OK;
+				pose.deviceIsConnected = true;
 			}
 			else {
-				if (lshin_available) {
-					if (lthigh_available && waist_available && chest_available) {
-						pose.poseIsValid = true;
-						pose.result = TrackingResult_Running_OK;
-						pose.deviceIsConnected = true;
-					}
-					else {
-						pose.poseIsValid = true;
-						pose.result = TrackingResult_Fallback_RotationOnly;
-						pose.deviceIsConnected = true;
-					}
-				}
-				else {
-					pose.poseIsValid = false;
-					pose.result = TrackingResult_Running_OutOfRange;
-					pose.deviceIsConnected = false;
-				}
+				pose.poseIsValid = false;
+				pose.result = TrackingResult_Running_OutOfRange;
+				pose.deviceIsConnected = false;
 			}
 			break;
 		case RFOOT:
-			if (!override_feet) {
-				if (rfoot_available) {
-					if (rshin_available && rthigh_available && waist_available && chest_available) {
-						pose.poseIsValid = true;
-						pose.result = TrackingResult_Running_OK;
-						pose.deviceIsConnected = true;
-					}
-					else {
-						pose.poseIsValid = true;
-						pose.result = TrackingResult_Fallback_RotationOnly;
-						pose.deviceIsConnected = true;
-					}
-				}
-				else {
-					pose.poseIsValid = false;
-					pose.result = TrackingResult_Running_OutOfRange;
-					pose.deviceIsConnected = false;
-				}
+			if (rfoot_available) {
+				pose.poseIsValid = true;
+				pose.result = TrackingResult_Running_OK;
+				pose.deviceIsConnected = true;
 			}
 			else {
-				if (rshin_available) {
-					if (rthigh_available && waist_available && chest_available) {
-						pose.poseIsValid = true;
-						pose.result = TrackingResult_Running_OK;
-						pose.deviceIsConnected = true;
-					}
-					else {
-						pose.poseIsValid = true;
-						pose.result = TrackingResult_Fallback_RotationOnly;
-						pose.deviceIsConnected = true;
-					}
-				}
-				else {
-					pose.poseIsValid = false;
-					pose.result = TrackingResult_Running_OutOfRange;
-					pose.deviceIsConnected = false;
-				}
+				pose.poseIsValid = false;
+				pose.result = TrackingResult_Running_OutOfRange;
+				pose.deviceIsConnected = false;
 			}
 			break;
 		case LSHIN:
 			if (lshin_available) {
-				if (lthigh_available && waist_available && chest_available) {
-					pose.poseIsValid = true;
-					pose.result = TrackingResult_Running_OK;
-					pose.deviceIsConnected = true;
-				}
-				else {
-					pose.poseIsValid = true;
-					pose.result = TrackingResult_Fallback_RotationOnly;
-					pose.deviceIsConnected = true;
-				}
+				pose.poseIsValid = true;
+				pose.result = TrackingResult_Running_OK;
+				pose.deviceIsConnected = true;
 			}
 			else {
 				pose.poseIsValid = false;
@@ -188,16 +125,9 @@ DriverPose_t TrackerDriver::GetPose()
 			break;
 		case RSHIN:
 			if (rshin_available) {
-				if (rthigh_available && waist_available && chest_available) {
-					pose.poseIsValid = true;
-					pose.result = TrackingResult_Running_OK;
-					pose.deviceIsConnected = true;
-				}
-				else {
-					pose.poseIsValid = true;
-					pose.result = TrackingResult_Fallback_RotationOnly;
-					pose.deviceIsConnected = true;
-				}
+				pose.poseIsValid = true;
+				pose.result = TrackingResult_Running_OK;
+				pose.deviceIsConnected = true;
 			}
 			else {
 				pose.poseIsValid = false;
@@ -207,16 +137,9 @@ DriverPose_t TrackerDriver::GetPose()
 			break;
 		case LTHIGH:
 			if (lthigh_available) {
-				if (waist_available && chest_available) {
-					pose.poseIsValid = true;
-					pose.result = TrackingResult_Running_OK;
-					pose.deviceIsConnected = true;
-				}
-				else {
-					pose.poseIsValid = true;
-					pose.result = TrackingResult_Fallback_RotationOnly;
-					pose.deviceIsConnected = true;
-				}
+				pose.poseIsValid = true;
+				pose.result = TrackingResult_Running_OK;
+				pose.deviceIsConnected = true;
 			}
 			else {
 				pose.poseIsValid = false;
@@ -226,16 +149,9 @@ DriverPose_t TrackerDriver::GetPose()
 			break;
 		case RTHIGH:
 			if (rthigh_available) {
-				if (waist_available && chest_available) {
-					pose.poseIsValid = true;
-					pose.result = TrackingResult_Running_OK;
-					pose.deviceIsConnected = true;
-				}
-				else {
-					pose.poseIsValid = true;
-					pose.result = TrackingResult_Fallback_RotationOnly;
-					pose.deviceIsConnected = true;
-				}
+				pose.poseIsValid = true;
+				pose.result = TrackingResult_Running_OK;
+				pose.deviceIsConnected = true;
 			}
 			else {
 				pose.poseIsValid = false;
@@ -245,16 +161,9 @@ DriverPose_t TrackerDriver::GetPose()
 			break;
 		case WAIST:
 			if (waist_available) {
-				if (chest_available) {
-					pose.poseIsValid = true;
-					pose.result = TrackingResult_Running_OK;
-					pose.deviceIsConnected = true;
-				}
-				else {
-					pose.poseIsValid = true;
-					pose.result = TrackingResult_Fallback_RotationOnly;
-					pose.deviceIsConnected = true;
-				}
+				pose.poseIsValid = true;
+				pose.result = TrackingResult_Running_OK;
+				pose.deviceIsConnected = true;
 			}
 			else {
 				pose.poseIsValid = false;
@@ -276,16 +185,9 @@ DriverPose_t TrackerDriver::GetPose()
 			break;
 		case LSHOULDER:
 			if (lshoulder_available) {
-				if (chest_available) {
-					pose.poseIsValid = true;
-					pose.result = TrackingResult_Running_OK;
-					pose.deviceIsConnected = true;
-				}
-				else {
-					pose.poseIsValid = true;
-					pose.result = TrackingResult_Fallback_RotationOnly;
-					pose.deviceIsConnected = true;
-				}
+				pose.poseIsValid = true;
+				pose.result = TrackingResult_Running_OK;
+				pose.deviceIsConnected = true;
 			}
 			else {
 				pose.poseIsValid = false;
@@ -295,16 +197,9 @@ DriverPose_t TrackerDriver::GetPose()
 			break;
 		case RSHOULDER:
 			if (rshoulder_available) {
-				if (chest_available) {
-					pose.poseIsValid = true;
-					pose.result = TrackingResult_Running_OK;
-					pose.deviceIsConnected = true;
-				}
-				else {
-					pose.poseIsValid = true;
-					pose.result = TrackingResult_Fallback_RotationOnly;
-					pose.deviceIsConnected = true;
-				}
+				pose.poseIsValid = true;
+				pose.result = TrackingResult_Running_OK;
+				pose.deviceIsConnected = true;
 			}
 			else {
 				pose.poseIsValid = false;
@@ -314,16 +209,9 @@ DriverPose_t TrackerDriver::GetPose()
 			break;
 		case LUPPERARM:
 			if (lupperarm_available) {
-				if (chest_available && lshoulder_available) {
-					pose.poseIsValid = true;
-					pose.result = TrackingResult_Running_OK;
-					pose.deviceIsConnected = true;
-				}
-				else {
-					pose.poseIsValid = true;
-					pose.result = TrackingResult_Fallback_RotationOnly;
-					pose.deviceIsConnected = true;
-				}
+				pose.poseIsValid = true;
+				pose.result = TrackingResult_Running_OK;
+				pose.deviceIsConnected = true;
 			}
 			else {
 				pose.poseIsValid = false;
@@ -333,16 +221,9 @@ DriverPose_t TrackerDriver::GetPose()
 			break;
 		case RUPPERARM:
 			if (rupperarm_available) {
-				if (chest_available && rshoulder_available) {
-					pose.poseIsValid = true;
-					pose.result = TrackingResult_Running_OK;
-					pose.deviceIsConnected = true;
-				}
-				else {
-					pose.poseIsValid = true;
-					pose.result = TrackingResult_Fallback_RotationOnly;
-					pose.deviceIsConnected = true;
-				}
+				pose.poseIsValid = true;
+				pose.result = TrackingResult_Running_OK;
+				pose.deviceIsConnected = true;
 			}
 			else {
 				pose.poseIsValid = false;
@@ -359,12 +240,6 @@ DriverPose_t TrackerDriver::GetPose()
 		pose.deviceIsConnected = false;
 	}
 
-	if (!hmd_available) {
-		pose.poseIsValid = false;
-		pose.result = TrackingResult_Running_OutOfRange;
-		pose.deviceIsConnected = false;
-	}
-
 	HmdQuaternion_t quat;
 	quat.x = 0;
 	quat.y = 0;
@@ -376,148 +251,124 @@ DriverPose_t TrackerDriver::GetPose()
 
 	switch (TrackerIndex) {
 	case LFOOT:
-		if (!override_feet) {
-			pose.vecPosition[0] = bk->P_lfoot.x();
-			pose.vecPosition[1] = bk->P_lfoot.y();
-			pose.vecPosition[2] = bk->P_lfoot.z();
+		pose.vecPosition[0] = Px_lfoot;
+		pose.vecPosition[1] = Py_lfoot;
+		pose.vecPosition[2] = Pz_lfoot;
 
-			pose.qRotation.x = bk->Q_lfoot.x();
-			pose.qRotation.y = bk->Q_lfoot.y();
-			pose.qRotation.z = bk->Q_lfoot.z();
-			pose.qRotation.w = bk->Q_lfoot.w();
-		}
-		else {
-			pose.vecPosition[0] = bk->P_lshin.x();
-			pose.vecPosition[1] = bk->P_lshin.y();
-			pose.vecPosition[2] = bk->P_lshin.z();
-
-			pose.qRotation.x = bk->Q_lshin.x();
-			pose.qRotation.y = bk->Q_lshin.y();
-			pose.qRotation.z = bk->Q_lshin.z();
-			pose.qRotation.w = bk->Q_lshin.w();
-		}
+		pose.qRotation.x = map(Qx_lfoot);
+		pose.qRotation.y = map(Qy_lfoot);
+		pose.qRotation.z = map(Qz_lfoot);
+		pose.qRotation.w = map(Qw_lfoot);
 		break;
 	case RFOOT:
-		if (!override_feet) {
-			pose.vecPosition[0] = bk->P_rfoot.x();
-			pose.vecPosition[1] = bk->P_rfoot.y();
-			pose.vecPosition[2] = bk->P_rfoot.z();
+		pose.vecPosition[0] = Px_rfoot;
+		pose.vecPosition[1] = Py_rfoot;
+		pose.vecPosition[2] = Pz_rfoot;
 
-			pose.qRotation.x = bk->Q_rfoot.x();
-			pose.qRotation.y = bk->Q_rfoot.y();
-			pose.qRotation.z = bk->Q_rfoot.z();
-			pose.qRotation.w = bk->Q_rfoot.w();
-		}
-		else {
-			pose.vecPosition[0] = bk->P_rshin.x();
-			pose.vecPosition[1] = bk->P_rshin.y();
-			pose.vecPosition[2] = bk->P_rshin.z();
-
-			pose.qRotation.x = bk->Q_rshin.x();
-			pose.qRotation.y = bk->Q_rshin.y();
-			pose.qRotation.z = bk->Q_rshin.z();
-			pose.qRotation.w = bk->Q_rshin.w();
-		}
+		pose.qRotation.x = map(Qx_rfoot);
+		pose.qRotation.y = map(Qy_rfoot);
+		pose.qRotation.z = map(Qz_rfoot);
+		pose.qRotation.w = map(Qw_rfoot);
 		break;
 	case LSHIN:
-		pose.vecPosition[0] = bk->P_lshin.x();
-		pose.vecPosition[1] = bk->P_lshin.y();
-		pose.vecPosition[2] = bk->P_lshin.z();
+		pose.vecPosition[0] = Px_lshin;
+		pose.vecPosition[1] = Py_lshin;
+		pose.vecPosition[2] = Pz_lshin;
 
-		pose.qRotation.x = bk->Q_lshin.x();
-		pose.qRotation.y = bk->Q_lshin.y();
-		pose.qRotation.z = bk->Q_lshin.z();
-		pose.qRotation.w = bk->Q_lshin.w();
+		pose.qRotation.x = map(Qx_lshin);
+		pose.qRotation.y = map(Qy_lshin);
+		pose.qRotation.z = map(Qz_lshin);
+		pose.qRotation.w = map(Qw_lshin);
 		break;
 	case RSHIN:
-		pose.vecPosition[0] = bk->P_rshin.x();
-		pose.vecPosition[1] = bk->P_rshin.y();
-		pose.vecPosition[2] = bk->P_rshin.z();
+		pose.vecPosition[0] = Px_rshin;
+		pose.vecPosition[1] = Py_rshin;
+		pose.vecPosition[2] = Pz_rshin;
 
-		pose.qRotation.x = bk->Q_rshin.x();
-		pose.qRotation.y = bk->Q_rshin.y();
-		pose.qRotation.z = bk->Q_rshin.z();
-		pose.qRotation.w = bk->Q_rshin.w();
+		pose.qRotation.x = map(Qx_rshin);
+		pose.qRotation.y = map(Qy_rshin);
+		pose.qRotation.z = map(Qz_rshin);
+		pose.qRotation.w = map(Qw_rshin);
 		break;
 	case LTHIGH:
-		pose.vecPosition[0] = bk->P_lthigh.x();
-		pose.vecPosition[1] = bk->P_lthigh.y();
-		pose.vecPosition[2] = bk->P_lthigh.z();
+		pose.vecPosition[0] = Px_lthigh;
+		pose.vecPosition[1] = Py_lthigh;
+		pose.vecPosition[2] = Pz_lthigh;
 
-		pose.qRotation.x = bk->Q_lthigh.x();
-		pose.qRotation.y = bk->Q_lthigh.y();
-		pose.qRotation.z = bk->Q_lthigh.z();
-		pose.qRotation.w = bk->Q_lthigh.w();
+		pose.qRotation.x = map(Qx_lthigh);
+		pose.qRotation.y = map(Qy_lthigh);
+		pose.qRotation.z = map(Qz_lthigh);
+		pose.qRotation.w = map(Qw_lthigh);
 		break;
 	case RTHIGH:
-		pose.vecPosition[0] = bk->P_rthigh.x();
-		pose.vecPosition[1] = bk->P_rthigh.y();
-		pose.vecPosition[2] = bk->P_rthigh.z();
+		pose.vecPosition[0] = Px_rthigh;
+		pose.vecPosition[1] = Py_rthigh;
+		pose.vecPosition[2] = Pz_rthigh;
 
-		pose.qRotation.x = bk->Q_rthigh.x();
-		pose.qRotation.y = bk->Q_rthigh.y();
-		pose.qRotation.z = bk->Q_rthigh.z();
-		pose.qRotation.w = bk->Q_rthigh.w();
+		pose.qRotation.x = map(Qx_rthigh);
+		pose.qRotation.y = map(Qy_rthigh);
+		pose.qRotation.z = map(Qz_rthigh);
+		pose.qRotation.w = map(Qw_rthigh);
 		break;
 	case WAIST:
-		pose.vecPosition[0] = bk->P_waist.x();
-		pose.vecPosition[1] = bk->P_waist.y();
-		pose.vecPosition[2] = bk->P_waist.z();
+		pose.vecPosition[0] = Px_waist;
+		pose.vecPosition[1] = Py_waist;
+		pose.vecPosition[2] = Pz_waist;
 
-		pose.qRotation.x = bk->Q_waist.x();
-		pose.qRotation.y = bk->Q_waist.y();
-		pose.qRotation.z = bk->Q_waist.z();
-		pose.qRotation.w = bk->Q_waist.w();
+		pose.qRotation.x = map(Qx_waist);
+		pose.qRotation.y = map(Qy_waist);
+		pose.qRotation.z = map(Qz_waist);
+		pose.qRotation.w = map(Qw_waist);
 		break;
 	case CHEST:
-		pose.vecPosition[0] = bk->P_chest.x();
-		pose.vecPosition[1] = bk->P_chest.y();
-		pose.vecPosition[2] = bk->P_chest.z();
+		pose.vecPosition[0] = Px_chest;
+		pose.vecPosition[1] = Py_chest;
+		pose.vecPosition[2] = Pz_chest;
 
-		pose.qRotation.x = bk->Q_chest.x();
-		pose.qRotation.y = bk->Q_chest.y();
-		pose.qRotation.z = bk->Q_chest.z();
-		pose.qRotation.w = bk->Q_chest.w();
+		pose.qRotation.x = map(Qx_chest);
+		pose.qRotation.y = map(Qy_chest);
+		pose.qRotation.z = map(Qz_chest);
+		pose.qRotation.w = map(Qw_chest);
 		break;
 	case LSHOULDER:
-		pose.vecPosition[0] = bk->P_lshoulder.x();
-		pose.vecPosition[1] = bk->P_lshoulder.y();
-		pose.vecPosition[2] = bk->P_lshoulder.z();
+		pose.vecPosition[0] = Px_lshoulder;
+		pose.vecPosition[1] = Py_lshoulder;
+		pose.vecPosition[2] = Pz_lshoulder;
 
-		pose.qRotation.x = bk->Q_lshoulder.x();
-		pose.qRotation.y = bk->Q_lshoulder.y();
-		pose.qRotation.z = bk->Q_lshoulder.z();
-		pose.qRotation.w = bk->Q_lshoulder.w();
+		pose.qRotation.x = map(Qx_lshoulder);
+		pose.qRotation.y = map(Qy_lshoulder);
+		pose.qRotation.z = map(Qz_lshoulder);
+		pose.qRotation.w = map(Qw_lshoulder);
 		break;
 	case RSHOULDER:
-		pose.vecPosition[0] = bk->P_rshoulder.x();
-		pose.vecPosition[1] = bk->P_rshoulder.y();
-		pose.vecPosition[2] = bk->P_rshoulder.z();
+		pose.vecPosition[0] = Px_rshoulder;
+		pose.vecPosition[1] = Py_rshoulder;
+		pose.vecPosition[2] = Pz_rshoulder;
 
-		pose.qRotation.x = bk->Q_rshoulder.x();
-		pose.qRotation.y = bk->Q_rshoulder.y();
-		pose.qRotation.z = bk->Q_rshoulder.z();
-		pose.qRotation.w = bk->Q_rshoulder.w();
+		pose.qRotation.x = map(Qx_rshoulder);
+		pose.qRotation.y = map(Qy_rshoulder);
+		pose.qRotation.z = map(Qz_rshoulder);
+		pose.qRotation.w = map(Qw_rshoulder);
 		break;
 	case LUPPERARM:
-		pose.vecPosition[0] = bk->P_lupperarm.x();
-		pose.vecPosition[1] = bk->P_lupperarm.y();
-		pose.vecPosition[2] = bk->P_lupperarm.z();
+		pose.vecPosition[0] = Px_lupperarm;
+		pose.vecPosition[1] = Py_lupperarm;
+		pose.vecPosition[2] = Pz_lupperarm;
 
-		pose.qRotation.x = bk->Q_lupperarm.x();
-		pose.qRotation.y = bk->Q_lupperarm.y();
-		pose.qRotation.z = bk->Q_lupperarm.z();
-		pose.qRotation.w = bk->Q_lupperarm.w();
+		pose.qRotation.x = map(Qx_lupperarm);
+		pose.qRotation.y = map(Qy_lupperarm);
+		pose.qRotation.z = map(Qz_lupperarm);
+		pose.qRotation.w = map(Qw_lupperarm);
 		break;
 	case RUPPERARM:
-		pose.vecPosition[0] = bk->P_rupperarm.x();
-		pose.vecPosition[1] = bk->P_rupperarm.y();
-		pose.vecPosition[2] = bk->P_rupperarm.z();
+		pose.vecPosition[0] = Px_rupperarm;
+		pose.vecPosition[1] = Py_rupperarm;
+		pose.vecPosition[2] = Pz_rupperarm;
 
-		pose.qRotation.x = bk->Q_rupperarm.x();
-		pose.qRotation.y = bk->Q_rupperarm.y();
-		pose.qRotation.z = bk->Q_rupperarm.z();
-		pose.qRotation.w = bk->Q_rupperarm.w();
+		pose.qRotation.x = map(Qx_rupperarm);
+		pose.qRotation.y = map(Qy_rupperarm);
+		pose.qRotation.z = map(Qz_rupperarm);
+		pose.qRotation.w = map(Qw_rupperarm);
 		break;
 	}
 

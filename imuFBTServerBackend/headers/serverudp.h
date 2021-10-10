@@ -1,14 +1,13 @@
 #pragma once
 
-#include <Globals.h>
+#include <globals.h>
 
-#define PACK( __Declaration__ ) __pragma( pack(push, 1) ) __Declaration__ __pragma( pack(pop))
-
-class ImuUDP
+class serverudp
 {
 public:
-	void init();
+	bool init();
 	void deinit();
+	void send(char* data, uint64_t len);
 
 private:
 	void start();
@@ -174,7 +173,7 @@ private:
 	PACK(struct Ping {
 		uint8_t header;
 		uint8_t msg;
-		uint16_t driverPort;
+		uint16_t bridgePort;
 		uint8_t footer;
 	});
 
@@ -195,7 +194,7 @@ private:
 		bool shoulder_en;
 		bool upperarm_en;
 		uint8_t footer;
-	};)
+	});
 
 	PayloadExt* payloadext;
 	Payload* payload;
@@ -211,7 +210,7 @@ private:
 	int bytes_read;
 	sockaddr_in local;
 	int locallen = sizeof(local);
-	uint16_t driverPort = 0;
+	uint16_t bridgePort = 0;
 	char buff[256];
 
 	sockaddr_in localT;
@@ -247,4 +246,5 @@ private:
 	double elapsed_time_ms;
 
 	bool initialized = false;
+	bool SocketActivated = false;
 };

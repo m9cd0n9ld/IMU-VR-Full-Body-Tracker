@@ -1,3 +1,74 @@
+<TrackerView@BoxLayout>:
+    desc: ''
+    ac: ac
+    px: px
+    py: py
+    pz: pz
+    qx: qx
+    qy: qy
+    qz: qz
+    qw: qw
+    size_hint_y: 0.083
+
+    DefaultLabel:
+        size_hint_x: 0.05
+
+    DefaultLabel:
+        size_hint_x: 0.2
+        text: root.desc
+        halign: 'center'
+
+    DefaultLabel:
+        id: ac
+        size_hint_x: 0.09375
+        text: 'False'
+        halign: 'center'
+
+    DefaultLabel:
+        id: px
+        size_hint_x: 0.09375
+        text: '0.00'
+        halign: 'center'
+
+    DefaultLabel:
+        id: py
+        size_hint_x: 0.09375
+        text: '0.00'
+        halign: 'center'
+
+    DefaultLabel:
+        id: pz
+        size_hint_x: 0.09375
+        text: '0.00'
+        halign: 'center'
+
+    DefaultLabel:
+        id: qx
+        size_hint_x: 0.09375
+        text: '0.00'
+        halign: 'center'
+
+    DefaultLabel:
+        id: qy
+        size_hint_x: 0.09375
+        text: '0.00'
+        halign: 'center'
+
+    DefaultLabel:
+        id: qz
+        size_hint_x: 0.09375
+        text: '0.00'
+        halign: 'center'
+
+    DefaultLabel:
+        id: qw
+        size_hint_x: 0.09375
+        text: '1.00'
+        halign: 'center'
+
+    DefaultLabel:
+        size_hint_x: 0.05
+
 <TransformInput@BoxLayout>:
     desc: ''
     disable: False
@@ -92,8 +163,8 @@
     DefaultSlider:
         id: slider1
         size_hint_x: 0.25
-        min: -0.3
-        max: 0.3
+        min: -0.5
+        max: 0.5
         disabled: root.disable
 
     DefaultLabel:
@@ -125,8 +196,8 @@
     DefaultSlider:
         id: slider2
         size_hint_x: 0.25
-        min: -0.3
-        max: 0.3
+        min: -0.5
+        max: 0.5
         disabled: root.disable
 
     DefaultLabel:
@@ -232,7 +303,8 @@
 
 TabbedPanel:
 	do_default_tab: False
-    tab_width: (self.size[0] - self.padding[0] * 5)/5
+    tab_width: (self.size[0] - self.padding[0] * 6)/6
+    on_current_tab: app.onTabChange(self.current_tab)
 
     TabbedPanelItem:
         text: 'Devices'
@@ -258,7 +330,7 @@ TabbedPanel:
 					markup: True
 
                 Label:
-                    size_hint_x: 0.2
+                    size_hint_x: 0.175
                     text: '[b]IP[/b]'
                     halign: 'center'
 					markup: True
@@ -276,19 +348,25 @@ TabbedPanel:
 					markup: True
 
                 Label:
-                    size_hint_x: 0.1
+                    size_hint_x: 0.075
                     text: '[b]IMU\nMode[/b]'
                     halign: 'center'
 					markup: True
 
                 Label:
-                    size_hint_x: 0.1
+                    size_hint_x: 0.075
+                    text: '[b]IMU\nAccuracy[/b]'
+                    halign: 'center'
+					markup: True
+
+                Label:
+                    size_hint_x: 0.0875
                     text: '[b]WiFi TX\nPower\ndBm[/b]'
                     halign: 'center'
 					markup: True
 
                 Label:
-                    size_hint_x: 0.1
+                    size_hint_x: 0.0875
                     text: '[b]WiFi\nPower\nSaving[/b]'
                     halign: 'center'
 					markup: True
@@ -323,6 +401,127 @@ TabbedPanel:
 
                 DefaultLabel:
                     size_hint_x: 0.4
+
+    TabbedPanelItem:
+        text: 'Tracker Data'
+
+        BoxLayout:
+            orientation: 'vertical'
+
+            BoxLayout:
+                size_hint_y: 0.1
+
+                Label:
+                    size_hint_x: 0.05
+
+                Label:
+                    size_hint_x: 0.2
+                    text: '[b]Tracker[/b]'
+                    halign: 'center'
+					markup: True
+
+                Label:
+                    size_hint_x: 0.09375
+                    text: '[b]Streaming[/b]'
+                    halign: 'center'
+					markup: True
+
+                Label:
+                    size_hint_x: 0.09375
+                    text: '[b]Px[/b]'
+                    halign: 'center'
+					markup: True
+
+                Label:
+                    size_hint_x: 0.09375
+                    text: '[b]Py[/b]'
+                    halign: 'center'
+					markup: True
+
+                Label:
+                    size_hint_x: 0.09375
+                    text: '[b]Pz[/b]'
+                    halign: 'center'
+					markup: True
+
+                Label:
+                    size_hint_x: 0.09375
+                    text: '[b]Qx[/b]'
+                    halign: 'center'
+					markup: True
+
+                Label:
+                    size_hint_x: 0.09375
+                    text: '[b]Qy[/b]'
+                    halign: 'center'
+					markup: True
+
+                Label:
+                    size_hint_x: 0.09375
+                    text: '[b]Qz[/b]'
+                    halign: 'center'
+					markup: True
+
+                Label:
+                    size_hint_x: 0.09375
+                    text: '[b]Qw[/b]'
+                    halign: 'center'
+					markup: True
+
+                Label:
+                    size_hint_x: 0.05
+
+            BoxLayout:
+                size_hint_y: 0.9
+                orientation: 'vertical'
+
+                TrackerView:
+                    id: tracker_1
+                    desc: 'Left Foot'
+
+                TrackerView:
+                    id: tracker_2
+                    desc: 'Right Foot'
+
+                TrackerView:
+                    id: tracker_3
+                    desc: 'Left Lower Leg'
+
+                TrackerView:
+                    id: tracker_4
+                    desc: 'Right Lower Leg'
+
+                TrackerView:
+                    id: tracker_5
+                    desc: 'Left Thigh'
+
+                TrackerView:
+                    id: tracker_6
+                    desc: 'Right Thigh'
+
+                TrackerView:
+                    id: tracker_7
+                    desc: 'Waist'
+
+                TrackerView:
+                    id: tracker_8
+                    desc: 'Chest'
+
+                TrackerView:
+                    id: tracker_9
+                    desc: 'Left Shoulder'
+
+                TrackerView:
+                    id: tracker_10
+                    desc: 'Right Shoulder'
+
+                TrackerView:
+                    id: tracker_11
+                    desc: 'Left Upper Arm'
+
+                TrackerView:
+                    id: tracker_12
+                    desc: 'Right Upper Arm'
 
     TabbedPanelItem:
         text: 'Device settings'
@@ -612,53 +811,28 @@ TabbedPanel:
                         text: 'Measure'
                         on_release: app.measure_height()
 
+                DefaultLabel:
+                    padding_y: 10
+                    font_size: '20sp'
+                    text: '[b]Headset position offset when standing in T-pose in meter[/b]'
+
                 DefaultHBox:
-                    
+
                     DefaultLabel:
-                        size_hint_x: 0.9
-                        padding_y: 10
-                        font_size: '20sp'
-                        text: '[b]Tracker position from joint in meter[/b]'
+                        size_hint_x: 0.2
+                        text: '[b]Trackers[/b]'
 
-                    Button:
-                        size_hint_x: 0.1
-                        text: 'Help'
-                        on_release: app.show_popup()
+                    DefaultLabel:
+                        size_hint_x: 0.4
+                        text: '[b]Left <--------------------> Right[/b]'
 
-                SegmentSlider:
-                    id: foot_sensor_h
-                    desc: 'Foot tracker from ankle joint'
-                    val: 0.05
+                    DefaultLabel:
+                        size_hint_x: 0.4
+                        text: '[b]Front <--------------------> Back[/b]'
 
-                SegmentSlider:
-                    id: shin_sensor_h
-                    desc: 'Lower leg tracker from knee joint'
-                    val: 0.2
-
-                SegmentSlider:
-                    id: thigh_sensor_h
-                    desc: 'Thigh tracker from hip joint'
-                    val: 0.2
-
-                SegmentSlider:
-                    id: waist_sensor_h
-                    desc: 'Waist tracker from hip center joint'
-                    val: 0.2
-
-                SegmentSlider:
-                    id: chest_sensor_h
-                    desc: 'Chest tracker from mid back joint'
-                    val: 0.2
-
-                SegmentSlider:
-                    id: shoulder_sensor_h
-                    desc: 'Shoulder tracker from shoulder center joint'
-                    val: 0.1
-
-                SegmentSlider:
-                    id: upperarm_sensor_h
-                    desc: 'Upper arm tracker from shoulder joint'
-                    val: 0.15
+                OffsetSlider:
+                    id: head_o
+                    desc: 'Headset'
 
                 DefaultLabel:
                     padding_y: 10
@@ -706,27 +880,82 @@ TabbedPanel:
 
                 SegmentSlider:
                     id: floor_offset
-                    desc: 'Tracker floor level offset in meter'
+                    desc: 'Tracker floor level offset in meter\n(Min Y value to prevent tracker clipping through)'
                     val: 0.0
                     min_val: -3.0
                     max_val: 3.0
 
                 OnOffSwitch:
                     id: override_feet_en_check
-                    desc: 'Override feet tracker data with lower leg tracker data \n(Feet tracker device must be activated)'
+                    desc: 'Use lower leg tracker data as SteamVR feet tracker\n(SteamVR feet tracker device must be activated)'
 
     TabbedPanelItem:
-        text: 'Offset settings'
+        text: 'Tracker virtual\nposition settings'
 
         DefaultScroll:
 
             DefaultVBox:
                 padding: [0, 0, 20, 20]
 
+                DefaultHBox:
+                    
+                    DefaultLabel:
+                        size_hint_x: 0.9
+                        padding_y: 10
+                        font_size: '20sp'
+                        text: '[b]Tracker virtual position from joint in meter[/b]'
+
+                    Button:
+                        size_hint_x: 0.1
+                        text: 'Help'
+                        on_release: app.show_popup()
+
+                SegmentSlider:
+                    id: foot_sensor_h
+                    desc: 'Foot tracker from ankle joint'
+                    val: 0.05
+                    min_val: -1.2
+
+                SegmentSlider:
+                    id: shin_sensor_h
+                    desc: 'Lower leg tracker from knee joint'
+                    val: 0.2
+                    min_val: -1.2
+
+                SegmentSlider:
+                    id: thigh_sensor_h
+                    desc: 'Thigh tracker from hip joint'
+                    val: 0.2
+                    min_val: -1.2
+
+                SegmentSlider:
+                    id: waist_sensor_h
+                    desc: 'Waist tracker from hip center joint'
+                    val: 0.2
+                    min_val: -1.2
+
+                SegmentSlider:
+                    id: chest_sensor_h
+                    desc: 'Chest tracker from mid back joint'
+                    val: 0.2
+                    min_val: -1.2
+
+                SegmentSlider:
+                    id: shoulder_sensor_h
+                    desc: 'Shoulder tracker from shoulder center joint'
+                    val: 0.1
+                    min_val: -1.2
+
+                SegmentSlider:
+                    id: upperarm_sensor_h
+                    desc: 'Upper arm tracker from shoulder joint'
+                    val: 0.15
+                    min_val: -1.2
+
                 DefaultLabel:
                     padding_y: 10
                     font_size: '20sp'
-                    text: '[b]Tracker position offset when standing in T-pose in meter[/b]'
+                    text: '[b]Tracker virtual position offset when standing in T-pose in meter[/b]'
 
                 DefaultHBox:
 
@@ -765,10 +994,6 @@ TabbedPanel:
                 OffsetSlider:
                     id: chest_o
                     desc: 'Chest'
-
-                OffsetSlider:
-                    id: head_o
-                    desc: 'Headset'
 
                 DefaultHBox:
                     padding: [0, 20, 0, 0]

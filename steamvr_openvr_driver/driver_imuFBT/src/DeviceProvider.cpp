@@ -3,35 +3,8 @@
 using namespace vr;
 
 bool SocketActivated = false;
-
-Quaternionf imu_lfoot(1, 0, 0, 0);
-Quaternionf imu_rfoot(1, 0, 0, 0);
-Quaternionf imu_lshin(1, 0, 0, 0);
-Quaternionf imu_rshin(1, 0, 0, 0);
-Quaternionf imu_lthigh(1, 0, 0, 0);
-Quaternionf imu_rthigh(1, 0, 0, 0);
-Quaternionf imu_waist(1, 0, 0, 0);
-Quaternionf imu_chest(1, 0, 0, 0);
-Quaternionf imu_lshoulder(1, 0, 0, 0);
-Quaternionf imu_rshoulder(1, 0, 0, 0);
-Quaternionf imu_lupperarm(1, 0, 0, 0);
-Quaternionf imu_rupperarm(1, 0, 0, 0);
-
-bool lfoot_available = false;
-bool rfoot_available = false;
-bool lshin_available = false;
-bool rshin_available = false;
-bool lthigh_available = false;
-bool rthigh_available = false;
-bool waist_available = false;
-bool chest_available = false;
-bool lshoulder_available = false;
-bool rshoulder_available = false;
-bool lupperarm_available = false;
-bool rupperarm_available = false;
-bool hmd_available = false;
-
 bool init_recv = false;
+
 bool feet_en = false;
 bool shin_en = false;
 bool thigh_en = false;
@@ -40,20 +13,121 @@ bool chest_en = false;
 bool shoulder_en = false;
 bool upperarm_en = false;
 
-bool override_feet = false;
+bool hmd_available = false;
 
-BodyKinematics* bk = new BodyKinematics();
-Matrix3f mat_hmd = Matrix3f::Identity(3, 3);
-Vector3f p_hmd(0, 0, 0);
+bool lfoot_available = false;
+float Px_lfoot = 0;
+float Py_lfoot = 0;
+float Pz_lfoot = 0;
+int16_t Qx_lfoot = 0;
+int16_t Qy_lfoot = 0;
+int16_t Qz_lfoot = 0;
+int16_t Qw_lfoot = 32767;
+
+bool rfoot_available = false;
+float Px_rfoot = 0;
+float Py_rfoot = 0;
+float Pz_rfoot = 0;
+int16_t Qx_rfoot = 0;
+int16_t Qy_rfoot = 0;
+int16_t Qz_rfoot = 0;
+int16_t Qw_rfoot = 32767;
+
+bool lshin_available = false;
+float Px_lshin = 0;
+float Py_lshin = 0;
+float Pz_lshin = 0;
+int16_t Qx_lshin = 0;
+int16_t Qy_lshin = 0;
+int16_t Qz_lshin = 0;
+int16_t Qw_lshin = 32767;
+
+bool rshin_available = false;
+float Px_rshin = 0;
+float Py_rshin = 0;
+float Pz_rshin = 0;
+int16_t Qx_rshin = 0;
+int16_t Qy_rshin = 0;
+int16_t Qz_rshin = 0;
+int16_t Qw_rshin = 32767;
+
+bool lthigh_available = false;
+float Px_lthigh = 0;
+float Py_lthigh = 0;
+float Pz_lthigh = 0;
+int16_t Qx_lthigh = 0;
+int16_t Qy_lthigh = 0;
+int16_t Qz_lthigh = 0;
+int16_t Qw_lthigh = 32767;
+
+bool rthigh_available = false;
+float Px_rthigh = 0;
+float Py_rthigh = 0;
+float Pz_rthigh = 0;
+int16_t Qx_rthigh = 0;
+int16_t Qy_rthigh = 0;
+int16_t Qz_rthigh = 0;
+int16_t Qw_rthigh = 32767;
+
+bool waist_available = false;
+float Px_waist = 0;
+float Py_waist = 0;
+float Pz_waist = 0;
+int16_t Qx_waist = 0;
+int16_t Qy_waist = 0;
+int16_t Qz_waist = 0;
+int16_t Qw_waist = 32767;
+
+bool chest_available = false;
+float Px_chest = 0;
+float Py_chest = 0;
+float Pz_chest = 0;
+int16_t Qx_chest = 0;
+int16_t Qy_chest = 0;
+int16_t Qz_chest = 0;
+int16_t Qw_chest = 32767;
+
+bool lshoulder_available = false;
+float Px_lshoulder = 0;
+float Py_lshoulder = 0;
+float Pz_lshoulder = 0;
+int16_t Qx_lshoulder = 0;
+int16_t Qy_lshoulder = 0;
+int16_t Qz_lshoulder = 0;
+int16_t Qw_lshoulder = 32767;
+
+bool rshoulder_available = false;
+float Px_rshoulder = 0;
+float Py_rshoulder = 0;
+float Pz_rshoulder = 0;
+int16_t Qx_rshoulder = 0;
+int16_t Qy_rshoulder = 0;
+int16_t Qz_rshoulder = 0;
+int16_t Qw_rshoulder = 32767;
+
+bool lupperarm_available = false;
+float Px_lupperarm = 0;
+float Py_lupperarm = 0;
+float Pz_lupperarm = 0;
+int16_t Qx_lupperarm = 0;
+int16_t Qy_lupperarm = 0;
+int16_t Qz_lupperarm = 0;
+int16_t Qw_lupperarm = 32767;
+
+bool rupperarm_available = false;
+float Px_rupperarm = 0;
+float Py_rupperarm = 0;
+float Pz_rupperarm = 0;
+int16_t Qx_rupperarm = 0;
+int16_t Qy_rupperarm = 0;
+int16_t Qz_rupperarm = 0;
+int16_t Qw_rupperarm = 32767;
 
 EVRInitError DeviceProvider::Init(IVRDriverContext* pDriverContext)
 {
 	VR_INIT_SERVER_DRIVER_CONTEXT(pDriverContext);
 
-	// Transform from IMU ENU frame (X right, Y front, Z up) to driver frame (X right, Y up, Z back)
-	bk->setDriverTransform(bk->euXYZ_to_quat(90.0 * PI / 180.0, 0, 0)); // Rotate X 90 deg
-
-	udpThread = new ImuUDP();
+	udpThread = new UDP();
 	udpThread->init();
 
 	initRun = true;
@@ -108,9 +182,6 @@ const char* const* DeviceProvider::GetInterfaceVersions()
 
 void DeviceProvider::RunFrame()
 {
-	if (init_recv) {
-		forwardKinematics();
-	}
 	if (m_pTracker1)
 	{
 		m_pTracker1->RunFrame();
@@ -172,33 +243,6 @@ void DeviceProvider::EnterStandby()
 
 void DeviceProvider::LeaveStandby()
 {
-}
-
-void DeviceProvider::forwardKinematics() {
-	TrackedDevicePose_t trackedDevicePoses[k_unMaxTrackedDeviceCount];
-	VRServerDriverHost()->GetRawTrackedDevicePoses(0, trackedDevicePoses, k_unMaxTrackedDeviceCount);
-
-	if (trackedDevicePoses[k_unTrackedDeviceIndex_Hmd].bPoseIsValid) {
-		HmdMatrix34_t hmdMatrix = trackedDevicePoses[k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking;
-		for (int i = 0; i < 3; i++) {
-			for (int j = 0; j < 3; j++) {
-				mat_hmd(i, j) = hmdMatrix.m[i][j];
-			}
-		}
-		for (int k = 0; k < 3; k++) {
-			p_hmd(k) = hmdMatrix.m[k][3];
-		}
-		hmd_available = true;
-		t_hmd_last = std::chrono::high_resolution_clock::now();
-	}
-
-	bk->update(imu_lfoot, imu_rfoot, imu_lshin, imu_rshin, imu_lthigh, imu_rthigh, imu_waist, imu_chest, imu_lshoulder, imu_rshoulder, imu_lupperarm, imu_rupperarm, Quaternionf(mat_hmd), p_hmd);
-
-	t_end = std::chrono::high_resolution_clock::now();
-	elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_hmd_last).count();
-	if (elapsed_time_ms >= 5000) {
-		hmd_available = false;
-	}
 }
 
 void DeviceProvider::initDevice() {
